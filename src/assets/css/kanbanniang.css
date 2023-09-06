@@ -1,0 +1,42 @@
+/*
+ * live2d看板娘自定义样式
+ */
+
+#waifu {
+  left: auto;
+  right: 20px;
+  /* bottom: 100px !important; */
+}
+
+/* 将宽高调整到220 * 220 */
+#waifu-tips {
+  width: 200px;
+  min-height: 50px;
+}
+
+#live2d {
+  width: 220px;
+  height: 220px;
+}
+
+#waifu-tool span {
+  height: 25px;
+}
+
+#waifu-tool svg {
+  height: 20px;
+}
+
+/* 隐藏这个不知道何种作用的东西 */
+#waifu-toggle {
+  display: none;
+}
+
+/* 隐藏着两个看板娘右边按钮的显示 */
+#waifu-tool-info {
+  display: none !important;
+}
+
+#waifu-tool-asteroids {
+  display: none !important;
+}
