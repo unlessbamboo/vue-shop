@@ -27,7 +27,13 @@ const SimpleApi = {
    * 功能: 获取todo list
    */
   fetchTodoListInfos(params) {
-    return axiosapi.get("./other/tolist", { params });
+    return axiosapi.get("./other/todos", { params });
+  },
+  /*
+   * 功能: 更新todo状态
+   */
+  UpdateTodoOneInfos(todoId, params) {
+    return axiosapi.put(`./other/todos/${todoId}`, params);
   },
 
   /*
