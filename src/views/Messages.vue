@@ -28,7 +28,7 @@
           <!-- 消息批量处理和分页 -->
           <div class="message-action-container">
             <div class="handle-row">
-              <el-button type="primary">全部标为已读</el-button>
+              <el-button type="primary" @click="handleUpdateAll(3)">全部标为已读</el-button>
             </div>
             <!-- 分页组件 -->
             <el-pagination
@@ -60,7 +60,7 @@
             </el-table>
             <div class="message-action-container">
               <div class="handle-row">
-                <el-button type="danger">删除全部</el-button>
+                <el-button type="danger" @click="handleUpdateAll(4)">删除全部</el-button>
               </div>
               <!-- 分页组件 -->
               <el-pagination
@@ -93,7 +93,7 @@
 
             <div class="message-action-container">
               <div class="handle-row">
-                <el-button type="danger">清空回收站</el-button>
+                <el-button type="danger" @click="handleUpdateAll(1)">清空回收站</el-button>
               </div>
               <!-- 分页组件 -->
               <el-pagination
@@ -159,6 +159,33 @@ export default {
       this.getMessageStatistics();
       this.getRecycleMessages();
     },
+    async handleUpdateAll(newStatus) {
+      var oldStatus = 2;
+      if (newStatus == 3) {
+        oldStatus = 2;
+      } else if (newStatus == 4) {
+        oldStatus = 3;
+      } else {
+        oldStatus = 4;
+      }
+
+      const { data: result } = await this.$http.put(`messages/updateall`, {
+        current_status: oldStatus,
+        new_status: newStatus,
+      });
+      if (!this.checkRequestResult(result, "更新系统消息状态失败!")) {
+        return;
+      }
+
+      if (newStatus == 3) {
+        this.getUnreadMessages();
+      } else if (newStatus == 4) {
+        this.getReadMessages();
+      } else {
+        this.getRecycleMessages();
+      }
+      this.getMessageStatistics();
+    },
     // 处理分页变化
     handleUnreadPageChange(page) {
       this.page = page;
@@ -214,7 +241,7 @@ export default {
         },
       });
       if (!this.checkRequestResult(result, "获取未读系统消息列表失败!")) {
-        return;
+        return null;
       }
       this.total = result.pager.total;
       this.page = result.pager.page;
