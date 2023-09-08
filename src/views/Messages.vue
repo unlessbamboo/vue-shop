@@ -135,7 +135,7 @@ export default {
   methods: {
     async updateMessageStatus(messageId, messageStatus) {
       const { data: result } = await this.$http.put(`messages/updateone/${messageId}`, {
-        status: messageStatus,
+        new_status: messageStatus,
       });
       if (!this.checkRequestResult(result, "更新系统消息状态失败!")) {
         return;

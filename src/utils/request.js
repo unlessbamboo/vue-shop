@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseHost = "http://127.0.0.1:5000";
+const baseHost = "http://127.0.0.1:9000";
 
 // 创建一个 Axios 实例，可以在这里配置默认的请求头、请求拦截器、响应拦截器等
 const service = axios.create({
