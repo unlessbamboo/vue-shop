@@ -228,7 +228,7 @@ export default {
     // 展示编辑用户的对话框
     async showEditDialog(id) {
       this.editDialogVisible = true;
-      const { data: result } = await this.$http.get("roles/" + id);
+      const { data: result } = await this.$http.get("auth/roles/" + id);
       if (!this.checkRequestResult(result, "查询用户信息失败！")) {
         return;
       }
@@ -239,7 +239,7 @@ export default {
         // console.log(valid)
         if (!valid) return;
         // 发起修改用户信息的数据请求
-        const { data: result } = await this.$http.put("roles/" + this.editForm.roleId, {
+        const { data: result } = await this.$http.put("auth/roles/" + this.editForm.roleId, {
           name: this.editForm.name,
           desc: this.editForm.desc,
         });
