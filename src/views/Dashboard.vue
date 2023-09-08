@@ -397,9 +397,11 @@ export default {
     },
     handleTodoMulComplete() {
       this.updateTodoStatus(3);
+      this.getTodoListInfos();
     },
     handleTodoMulDelete() {
       this.updateTodoStatus(4);
+      this.getTodoListInfos();
     },
 
     // 获取最近一周各品类销售数据
