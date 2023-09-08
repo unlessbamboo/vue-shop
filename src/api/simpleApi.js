@@ -27,7 +27,7 @@ const SimpleApi = {
    * 功能: 获取todo list
    */
   fetchTodoListInfos(params) {
-    return axiosapi.get("./other/todos", { params });
+    return axiosapi.get("./other/todos", {params});
   },
   /*
    * 功能: 更新todo状态
@@ -40,14 +40,14 @@ const SimpleApi = {
    * 功能: 获取指定范围内的销售数据, 若未指定则返回所有销售数据
    */
   fetchSalesData(params) {
-    return axiosapi.get("./other/sales", { params });
+    return axiosapi.get("./other/sales", {params});
   },
 
   /*
    * 功能: 获取网站相关的统计信息: 访问量, 消息数, 订单量等
    */
   fetchStatisticsData(params) {
-    return axiosapi.get("./other/statistics", { params });
+    return axiosapi.get("./other/statistics", {params});
   },
 
   fetchSystemInfo(params) {
@@ -62,7 +62,7 @@ const SimpleApi = {
    * 功能: 获取消息统计信息
    */
   fetchMessageStatistics(params) {
-    return axiosapi.get("./messages/statistics", { params });
+    return axiosapi.get("./messages/statistics", {params});
   },
 };
 

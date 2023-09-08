@@ -1,5 +1,6 @@
 import Vue from "vue";
 import App from "./App.vue";
+import moment from "moment";
 import router from "./router";
 import ElementUI from "element-ui";
 import VueI18n from "vue-i18n";
@@ -11,7 +12,7 @@ import "quill/dist/quill.bubble.css"; // for bubble theme
 
 import "element-ui/lib/theme-chalk/index.css"; // 默认主题
 
-import { messages } from "@/utils/i18n";
+import {messages} from "@/utils/i18n";
 import axiosapi from "@/utils/request";
 import "@/assets/css/icon.css";
 import "@/plugins/directives";
@@ -100,6 +101,11 @@ Vue.filter("dateFormat", function (originVal) {
   const mm = (dt.getMinutes() + "").padStart(2, "0");
   const ss = (dt.getSeconds() + "").padStart(2, "0");
   return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+});
+
+Vue.filter("dateFormatConvert", function (value) {
+  if (!value) return "";
+  return moment(value).format("YYYY-MM-DD HH:mm:ss");
 });
 
 new Vue({

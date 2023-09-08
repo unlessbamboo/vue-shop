@@ -14,7 +14,7 @@
             </div>
             <div class="user-info-list">
               上次登录时间：
-              <span>{{ loginOther.login_time }}</span>
+              <span>{{ loginOther.login_time | dateFormatConvert }}</span>
             </div>
             <div class="user-info-list">
               上次登录地点：
@@ -95,12 +95,15 @@
             <el-table :show-header="false" :data="todoList" style="width: 100%">
               <el-table-column width="40">
                 <template slot-scope="scope">
-                  <el-checkbox v-model="scope.row.status"></el-checkbox>
+                  <el-checkbox
+                    :value="scope.row.status == 3"
+                    @change="handleTodoCheckboxChange(scope.row)"></el-checkbox>
                 </template>
               </el-table-column>
               <el-table-column>
                 <template slot-scope="scope">
-                  <div class="todo-item" :class="{ 'todo-item-del': scope.row.status === 3 }">
+                  <!-- 这里使用方法就是为了调试, 实际问题: 类型不一致, 变为字符串了, 这里提供了一种debug方法 -->
+                  <div class="todo-item" :class="{ 'todo-item-del': isTodoItemDel(scope.row.status) }">
                     {{ scope.row.title }}
                   </div>
                 </template>
@@ -279,6 +282,9 @@ export default {
     clearInterval(this.refreshInterval);
   },
   methods: {
+    isTodoItemDel(status) {
+      return parseInt(status) === 3;
+    },
     // 注意, 在请求期间, 数据仍然是初始状态, 所以html中需要兼容
     getAllInfo() {
       this.getTodoListInfos();
@@ -354,6 +360,18 @@ export default {
       this.todoEditDialogVisible = false;
       this.getTodoListInfos();
       this.$message.success("更新todo信息成功");
+    },
+    // 在勾选或取消勾选待办实现的时候触发回调
+    async handleTodoCheckboxChange(row) {
+      status = row.status == 3 ? 1 : 3;
+
+      const { data: result } = await SimpleApi.UpdateTodoOneInfos(row.id, { status: parseInt(status) });
+      if (!this.checkRequestResult(result, `更新待办事项(${row.title})信息失败`)) {
+        return;
+      }
+
+      // 这种数组内的数据刷新不会触发自动刷新, 需要手动处理(注意status的类型)
+      this.$set(row, "status", status);
     },
     // 添加新的代办事项
     handleTodoAdd() {
