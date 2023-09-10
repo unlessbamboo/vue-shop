@@ -11,7 +11,12 @@
     <el-card>
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.query" clearable @clear="getGoodsList">
+          <el-input
+            placeholder="请输入内容"
+            v-model="queryInfo.name"
+            clearable
+            @clear="getGoodsList"
+            @change="getGoodsList">
             <el-button slot="append" icon="el-icon-search" @click="getGoodsList"></el-button>
           </el-input>
         </el-col>
@@ -90,7 +95,7 @@ export default {
     return {
       // 查询参数对象
       queryInfo: {
-        query: "",
+        name: "",
         page: 1,
         pagesize: 10,
       },

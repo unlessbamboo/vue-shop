@@ -94,7 +94,7 @@
               <quill-editor v-model="addForm.introduce"></quill-editor>
             </div>
             <div class="add-good-button">
-              <el-button class="btnAdd" @click="add" type="primary">添加商品</el-button>
+              <el-button class="btnAdd" @click="addGoods" type="primary">添加商品</el-button>
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -131,10 +131,58 @@ export default {
         attrs: [],
       },
       addFormRules: {
-        name: [{ required: true, message: "请输入商品名称", trigger: "blur" }],
-        price: [{ required: true, message: "请输入商品价格", trigger: "blur" }],
-        weight: [{ required: true, message: "请输入商品重量", trigger: "blur" }],
-        number: [{ required: true, message: "请输入商品数量", trigger: "blur" }],
+        name: [
+          {
+            required: true,
+            message: "请输入商品名称",
+            trigger: "blur",
+          },
+        ],
+        price: [
+          {
+            required: true,
+            message: "请输入商品价格",
+            trigger: "blur",
+            type: "number",
+            transform: (value) => {
+              const newValue = value !== "" ? Number(value) : 0;
+              if (Number.isFinite(newValue)) {
+                this.addForm.price = newValue;
+              }
+              return newValue;
+            },
+          },
+        ],
+        weight: [
+          {
+            required: true,
+            message: "请输入商品重量",
+            trigger: "blur",
+            type: "number",
+            transform: (value) => {
+              const newValue = value !== "" ? Number(value) : 0;
+              if (Number.isFinite(newValue)) {
+                this.addForm.weight = newValue;
+              }
+              return newValue;
+            },
+          },
+        ],
+        number: [
+          {
+            required: true,
+            message: "请输入商品数量",
+            trigger: "blur",
+            type: "number",
+            transform: (value) => {
+              const newValue = value !== "" ? Number(value) : 0;
+              if (Number.isFinite(newValue)) {
+                this.addForm.number = newValue;
+              }
+              return newValue;
+            },
+          },
+        ],
         categories: [{ required: true, message: "请选择商品分类", trigger: "blur" }],
       },
       // 动态参数列表数据
@@ -187,7 +235,7 @@ export default {
           return;
         }
         result.data.forEach((item) => {
-          item.values = item.values.length === 0 ? [] : item.values;
+          item.values = item.values.length === 0 ? "" : item.values;
         });
         this.onlyTableData = result.data;
       }
@@ -219,7 +267,7 @@ export default {
     /*
      * 功能: 添加商品
      */
-    add() {
+    addGoods() {
       this.$refs.addFormRef.validate(async (valid) => {
         if (!valid) {
           return this.$message.error("填写必要的表单项！");
