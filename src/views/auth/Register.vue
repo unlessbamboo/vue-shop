@@ -35,7 +35,7 @@
         </el-form-item>
 
         <el-form-item prop="age" class="custom-form-item">
-          <el-input v-model="registerForm.age" placeholder="请输入年龄">
+          <el-input v-model="registerForm.age" placeholder="请输入年龄" type="number">
             <!-- <el-button slot="prepend" icon="el-icon-date"></el-button> -->
           </el-input>
         </el-form-item>
@@ -88,7 +88,7 @@ export default {
         email: "",
         password: "",
         confirmPassword: "",
-        age: "",
+        age: 16,
         cityInfo: [], // 省市
         city: "",
         province: "",
@@ -96,6 +96,21 @@ export default {
       rules: {
         username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
         password: [{ required: true, message: "请输入密码", trigger: "blur" }],
+        email: [
+          { required: true, message: "请输入电子邮件", trigger: "blur" },
+          {
+            validator: (rule, value, callback) => {
+              // 使用正则表达式检查电子邮件格式
+              const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/;
+              if (emailPattern.test(value)) {
+                callback();
+              } else {
+                callback(new Error("请输入有效的电子邮件地址"));
+              }
+            },
+            trigger: "blur",
+          },
+        ],
         confirmPassword: [
           { required: true, message: "请确认密码", trigger: "blur" },
           {
@@ -109,6 +124,21 @@ export default {
             trigger: "blur",
           },
         ],
+        age: [
+          {
+            required: true,
+            message: "请输入年龄",
+            trigger: "blur",
+            type: "number",
+            transform: (value) => {
+              const newValue = value !== "" ? Number(value) : 0;
+              if (Number.isFinite(newValue)) {
+                this.registerForm.age = newValue;
+              }
+              return newValue;
+            },
+          },
+        ],
       },
     };
   },
@@ -119,8 +149,10 @@ export default {
           this.$message.error("请输入正确的账号和密码");
           return false;
         }
+        this.registerForm.age = Number(this.registerForm.age);
+
         const { data: result } = await this.$http.post("auth/register", this.registerForm);
-        if (result.code !== 100000) return this.$message.error("注册失败");
+        if (result.code !== 100000) return this.$message.error(result.msg || "注册失败");
 
         // 注册逻辑，可以在这里处理用户的注册信息
         this.$message.success("注册成功");
