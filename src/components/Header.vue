@@ -9,6 +9,12 @@
 
     <div class="header-right">
       <div class="header-user-con">
+        <!-- 切换后端服务 -->
+        <div class="btn-fullscreen" @click="handleChangeHost">
+          <el-tooltip effect="dark" content="切换服务" placement="bottom">
+            <i class="el-icon-orange"></i>
+          </el-tooltip>
+        </div>
         <!-- 全屏显示 -->
         <div class="btn-fullscreen" @click="handleFullScreen">
           <!-- 文字提示组件, 一般用于鼠标移入后的提示 -->
@@ -58,6 +64,7 @@
 
 <script>
 import SimpleApi from "@/api/simpleApi";
+import Axiosapi from "@/utils/request";
 import bus from "@/store/bus";
 import requestMixin from "@/mixins/requestMixin";
 
@@ -102,6 +109,21 @@ export default {
     collapseChage() {
       this.collapse = !this.collapse;
       bus.$emit("collapse", this.collapse);
+    },
+
+    // 切换后端服务
+    handleChangeHost() {
+      var oldBaseHost = Axiosapi.dynamicURL;
+
+      var newBaseHost;
+      if (oldBaseHost == process.env.VUE_APP_FLASK_BACKEND_HOST) {
+        newBaseHost = process.env.VUE_APP_GIN_BACKEND_HOST;
+      } else {
+        newBaseHost = process.env.VUE_APP_FLASK_BACKEND_HOST;
+      }
+      window.sessionStorage.setItem("shopDynamicHost", newBaseHost);
+      bus.$emit("dynamicURLChange", newBaseHost); // 使用事件总线进行通知
+      this.$message.success("成功切换后端服务为:" + newBaseHost);
     },
 
     // 全屏事件, 下面的代码是通用方式(chatgpt也是这样写的)
@@ -180,6 +202,7 @@ export default {
   margin-right: 5px;
   font-size: 24px;
 }
+
 .btn-bell,
 .btn-fullscreen {
   position: relative;
@@ -202,6 +225,7 @@ export default {
 .btn-bell .el-icon-bell {
   color: #fff;
 }
+
 .user-name {
   margin-left: 10px;
 }

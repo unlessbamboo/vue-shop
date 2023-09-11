@@ -20,6 +20,10 @@
               上次登录地点：
               <span>{{ loginLocation }}</span>
             </div>
+            <div class="user-info-list">
+              当前后端服务：
+              <span>{{ dynamicBaseURL }}</span>
+            </div>
           </el-card>
           <!--
           el-card是一个卡片组件，用于包裹内容，并提供阴影效果
@@ -218,9 +222,10 @@
 import Schart from "vue-schart";
 
 import SimpleApi from "@/api/simpleApi";
+import Axiosapi from "@/utils/request";
 import requestMixin from "@/mixins/requestMixin";
 import CommonDateHandler from "@/utils/date";
-import bus from "@/store/bus";
+import EventBus from "@/store/bus";
 /*
 页面: 管理后台控制台首页
  */
@@ -229,6 +234,7 @@ export default {
   mixins: [requestMixin],
   data() {
     return {
+      dynamicBaseURL: Axiosapi.dynamicURL,
       loginName: localStorage.getItem("ms_username"),
       loginOther: JSON.parse(localStorage.getItem("ms_other")),
 
@@ -268,6 +274,12 @@ export default {
   // 实例创建完成后被立即调用, 此时还没开始，$el 属性目前不可见
   created() {
     this.getAllInfo();
+    // 监听事件总线的某一个值
+    EventBus.$on("dynamicURLChange", this.handleDynamicURLChange);
+  },
+  beforeDestroy() {
+    // 取消监听
+    EventBus.$off("dynamicURLChange", this.handleDynamicURLChange);
   },
   // 当点击"系统首页", 加载dashboard页面的时候, 该函数被调用
   activated() {
@@ -282,6 +294,9 @@ export default {
     clearInterval(this.refreshInterval);
   },
   methods: {
+    handleDynamicURLChange(newDynamicURLValue) {
+      this.dynamicBaseURL = newDynamicURLValue;
+    },
     isTodoItemDel(status) {
       return parseInt(status) === 3;
     },
@@ -513,7 +528,7 @@ export default {
   align-items: center;
   padding-bottom: 20px;
   border-bottom: 2px solid #ccc;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .user-avator {
@@ -541,7 +556,7 @@ export default {
 }
 
 .user-info-list span {
-  margin-left: 70px;
+  margin-left: 40px;
 }
 
 .mgb20 {
