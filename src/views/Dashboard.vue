@@ -552,11 +552,12 @@ export default {
 .user-info-list {
   font-size: 14px;
   color: #999;
+  white-space: nowrap;
   line-height: 25px;
 }
 
 .user-info-list span {
-  margin-left: 40px;
+  margin-left: 0px;
 }
 
 .mgb20 {
