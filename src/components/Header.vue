@@ -9,6 +9,13 @@
 
     <div class="header-right">
       <div class="header-user-con">
+        <!-- 跳转到bamboo首页 -->
+        <div class="btn-myhome" @click="handleGoHome">
+          <el-tooltip effect="dark" content="个人主页" placement="bottom">
+            <i class="el-icon-s-home"></i>
+          </el-tooltip>
+        </div>
+
         <!-- 切换后端服务 -->
         <div class="btn-fullscreen" @click="handleChangeHost">
           <el-tooltip effect="dark" content="切换服务" placement="bottom">
@@ -110,6 +117,11 @@ export default {
       this.collapse = !this.collapse;
       bus.$emit("collapse", this.collapse);
     },
+    // 跳转到个人主页
+    handleGoHome() {
+      var homePage = process.env.VUE_APP_MYHOME_HOST;
+      window.location.href = homePage;
+    },
 
     // 切换后端服务
     handleChangeHost() {
@@ -203,8 +215,14 @@ export default {
   font-size: 24px;
 }
 
+.btn-myhome {
+  margin-right: 5px;
+  font-size: 24px;
+}
+
 .btn-bell,
-.btn-fullscreen {
+.btn-fullscreen,
+.btn-myhome {
   position: relative;
   width: 30px;
   height: 30px;
