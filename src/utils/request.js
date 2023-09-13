@@ -9,39 +9,6 @@ const service = axios.create({
   withCredentials: true, // 设置跨域请求时是否需要使用凭证
 });
 
-// 请求拦截器
-service.interceptors.request.use(
-  (config) => {
-    // 动态改变URL
-    const sessionBaseHost = window.sessionStorage.getItem("shopDynamicHost");
-    if (sessionBaseHost) {
-      config.baseURL = sessionBaseHost + "/api/v1/";
-    }
-
-    config.headers.Authorization = window.sessionStorage.getItem("token");
-    return config; // 在发送请求之前做些什么，例如添加认证信息、设置请求头等
-  },
-  (error) => {
-    console.log(error);
-    return Promise.reject();
-  },
-);
-
-// 响应拦截器
-service.interceptors.response.use(
-  (response) => {
-    if (response.status === 200) {
-      return response; // 对响应数据做些什么，例如处理错误状态码、数据转换等
-    } else {
-      Promise.reject();
-    }
-  },
-  (error) => {
-    console.log(error);
-    return Promise.reject();
-  },
-);
-
 // 动态获取uploadURL
 Object.defineProperty(service, "uploadURL", {
   get: function () {
