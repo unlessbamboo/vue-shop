@@ -7,10 +7,6 @@ WEBDIR="/apps/deploy-shop/shop/data/nginx/shop"
 
 # 关闭服务
 ssh root@${SHOP_SERVER} "docker stop shop-nginx"
-if [[ $? != 0 ]];then
-    echo "关闭nginx服务异常"
-    exit -1
-fi
 
 # 1. 本地进行打包工作
 npm run build
