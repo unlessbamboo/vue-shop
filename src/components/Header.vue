@@ -61,6 +61,12 @@
             <a href="https://github.com/unlessbamboo/vue-shop" target="_blank">
               <el-dropdown-item divided>项目仓库</el-dropdown-item>
             </a>
+            <a :href="flaskSwagger" target="_blank">
+              <el-dropdown-item divided>flask swagger</el-dropdown-item>
+            </a>
+            <a :href="ginSwagger" target="_blank">
+              <el-dropdown-item divided>gin swagger</el-dropdown-item>
+            </a>
             <el-dropdown-item divided command="loginout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
@@ -79,6 +85,8 @@ export default {
   mixins: [requestMixin],
   data() {
     return {
+      flaskSwagger: process.env.VUE_APP_FLASK_BACKEND_HOST + "/api/v1/swagger",
+      ginSwagger: process.env.VUE_APP_GIN_BACKEND_HOST + "/api/v1/swagger/index.html",
       collapse: true, // 默认打开侧边栏
       fullscreen: false,
       name: "linxin",
