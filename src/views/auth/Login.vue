@@ -25,6 +25,7 @@
         <div class="login-btn">
           <el-button type="primary" @click="submitForm()">登录</el-button>
         </div>
+        <div><span class="ms-login-tips">tips: 使用admin/admin123账号进行测试</span></div>
       </el-form>
     </div>
   </div>
@@ -113,6 +114,11 @@ export default {
   padding-right: 20px;
 }
 .ms-login-title-goto .el-button--text {
+  font-size: 12px;
+  color: #fff;
+}
+
+.ms-login-tips {
   font-size: 12px;
   color: #fff;
 }
