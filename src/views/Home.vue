@@ -30,7 +30,7 @@ import bus from "@/store/bus";
 export default {
   data() {
     return {
-      tagsList: [],
+      // tagsList: [],
       collapse: false,
     };
   },
@@ -46,13 +46,32 @@ export default {
     });
 
     // 缓存组件, 提高组件的加载速度, 注意, 这里和tags中的展示无关系
-    bus.$on("tags-flush", (msg) => {
+    /* bus.$on("tags-flush", (msg) => {
       let arr = [];
       for (let i = 0, len = msg.length; i < len; i++) {
         msg[i].name && arr.push(msg[i].name);
       }
       this.tagsList = arr;
-    });
+    }); */
+  },
+  computed: {
+    tagsList: {
+      get() {
+        return this.$store.state.tagsList;
+      },
+      set(newValue) {
+        return newValue;
+      },
+    },
+  },
+  watch: {
+    tagsList(msg) {
+      let arr = [];
+      for (let i = 0, len = msg.length; i < len; i++) {
+        msg[i].name && arr.push(msg[i].name);
+      }
+      this.tagsList = arr;
+    },
   },
 };
 </script>

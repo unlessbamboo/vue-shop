@@ -83,7 +83,8 @@ export default {
       }
 
       // b. 见home.vue, 主要用于组件的缓存, 与展示无关
-      bus.$emit("tags-flush", this.tagsList);
+      // bus.$emit("tags-flush", this.tagsList);
+      this.$store.dispatch("updateTagsList", this.tagsList);
     },
 
     handleTags(command) {

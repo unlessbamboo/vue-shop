@@ -2,6 +2,7 @@ import Vue from "vue";
 import App from "./App.vue";
 import moment from "moment";
 import router from "./router";
+import store from "./store/vuex";
 import ElementUI from "element-ui";
 import VueI18n from "vue-i18n";
 import TreeTable from "vue-table-with-tree-grid";
@@ -54,6 +55,7 @@ Vue.filter("dateFormatConvert", function (value) {
 });
 
 new Vue({
+  store,
   router,
   i18n,
   render: (h) => h(App),
