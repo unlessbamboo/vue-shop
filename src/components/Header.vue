@@ -17,11 +17,17 @@
         </div>
 
         <!-- 切换后端服务 -->
-        <div class="btn-fullscreen" @click="handleChangeHost">
-          <el-tooltip effect="dark" content="切换服务" placement="bottom">
+        <el-dropdown class="btn-fullscreen" @command="handleChangeHost">
+          <span class="el-dropdown-link">
             <i class="el-icon-orange"></i>
-          </el-tooltip>
-        </div>
+          </span>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="flaskapi">切换到FlaskApi</el-dropdown-item>
+            <el-dropdown-item command="djangoapi">切换到DjangoApi</el-dropdown-item>
+            <el-dropdown-item command="ginapi">切换到GinApi</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+
         <!-- 全屏显示 -->
         <div class="btn-fullscreen" @click="handleFullScreen">
           <!-- 文字提示组件, 一般用于鼠标移入后的提示 -->
@@ -64,6 +70,9 @@
             <a :href="flaskSwagger" target="_blank">
               <el-dropdown-item divided>flask swagger</el-dropdown-item>
             </a>
+            <a :href="djangoSwagger" target="_blank">
+              <el-dropdown-item divided>django swagger</el-dropdown-item>
+            </a>
             <a :href="ginSwagger" target="_blank">
               <el-dropdown-item divided>gin swagger</el-dropdown-item>
             </a>
@@ -86,6 +95,7 @@ export default {
   data() {
     return {
       flaskSwagger: process.env.VUE_APP_FLASK_BACKEND_HOST + "/api/v1/swagger",
+      djangoSwagger: process.env.VUE_APP_DJANGO_BACKEND_HOST + "/api/v1/swagger/",
       ginSwagger: process.env.VUE_APP_GIN_BACKEND_HOST + "/api/v1/swagger/index.html",
       collapse: true, // 默认打开侧边栏
       fullscreen: false,
@@ -132,15 +142,22 @@ export default {
     },
 
     // 切换后端服务
-    handleChangeHost() {
+    handleChangeHost(cmd) {
       var oldBaseHost = Axiosapi.dynamicURL;
+      var newBaseHost = "";
 
-      var newBaseHost;
-      if (oldBaseHost == process.env.VUE_APP_FLASK_BACKEND_HOST) {
-        newBaseHost = process.env.VUE_APP_GIN_BACKEND_HOST;
-      } else {
+      if (cmd == "flaskapi") {
         newBaseHost = process.env.VUE_APP_FLASK_BACKEND_HOST;
+      } else if (cmd == "djangoapi") {
+        newBaseHost = process.env.VUE_APP_DJANGO_BACKEND_HOST;
+      } else {
+        newBaseHost = process.env.VUE_APP_GIN_BACKEND_HOST;
       }
+
+      if (newBaseHost == oldBaseHost) {
+        return;
+      }
+
       window.sessionStorage.setItem("shopDynamicHost", newBaseHost);
       bus.$emit("dynamicURLChange", newBaseHost); // 使用事件总线进行通知
       this.$message.success("成功切换后端服务为:" + newBaseHost);
@@ -217,19 +234,21 @@ export default {
   align-items: center;
 }
 
-.btn-fullscreen {
+.btn-fullscreen,
+.btn-dropdown {
   transform: rotate(45deg);
-  margin-right: 5px;
+  margin-right: 10px;
   font-size: 24px;
 }
 
 .btn-myhome {
-  margin-right: 5px;
+  margin-right: 10px;
   font-size: 24px;
 }
 
 .btn-bell,
 .btn-fullscreen,
+.btn-dropdown,
 .btn-myhome {
   position: relative;
   width: 30px;
@@ -268,7 +287,11 @@ export default {
   color: #fff;
   cursor: pointer;
 }
+/* 下拉框缩进 */
 .el-dropdown-menu__item {
-  text-align: center;
+  text-align: left;
+}
+.dropdown-hide-arrow {
+  display: none;
 }
 </style>
