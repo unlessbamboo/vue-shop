@@ -154,25 +154,25 @@
         <!-- a. 柱状图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <schart ref="bar" class="schart" canvasId="bar" :options="salesData.options"></schart>
+            <schart ref="barRef" class="schart" canvasId="bar" :options="salesData.options"></schart>
           </el-card>
         </el-col>
         <!-- 折线图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <schart ref="line" class="schart" canvasId="line" :options="salesData.options2"></schart>
+            <schart ref="lineRef" class="schart" canvasId="line" :options="salesData.options2"></schart>
           </el-card>
         </el-col>
         <!-- 饼状图, 注意, 数据本身就有一定的格式要求 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <schart ref="pie" class="schart" canvasId="pie" :options="salesData.options3"></schart>
+            <schart ref="pieRef" class="schart" canvasId="pie" :options="salesData.options3"></schart>
           </el-card>
         </el-col>
         <!-- 环形图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <schart ref="ring" class="schart" canvasId="ring" :options="salesData.options4"></schart>
+            <schart ref="ringRef" class="schart" canvasId="ring" :options="salesData.options4"></schart>
           </el-card>
         </el-col>
       </el-row>
@@ -218,17 +218,242 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, onMounted, onBeforeUnmount, onBeforeMount, onActivated, onDeactivated, watch } from "vue";
 import Schart from "vue-schart";
 
 import SimpleApi from "@/api/simpleApi";
 import Axiosapi from "@/utils/request";
-import requestMixin from "@/mixins/requestMixin";
+import {checkRequestResult} from "@/mixins/requestCommon";
 import CommonDateHandler from "@/utils/date";
 import EventBus from "@/store/bus";
 /*
 页面: 管理后台控制台首页
  */
+const dynamicBaseURL = ref(Axiosapi.dynamicURL);
+const loginName = localStorage.getItem("ms_username");
+const loginOther = JSON.parse(localStorage.getItem("ms_other"));
+
+const todoList = ref([]);
+const todoPage = ref(1);
+const barRef = ref(null);
+const lineRef = ref(null);
+const pieRef = ref(null);
+const ringRef = ref(null);
+const refreshInterval = ref(null);
+const todoPageSize = ref(5);
+const todoTotal = ref(0);
+const todoEditDialogVisible = ref(false);
+const todoHandleId = ref(0);
+const todoEditForm = reactive({});
+const todoAddDialogVisible = ref(false);
+const todoAddForm = reactive({ title: "", desc: "", priority: 3 });
+const salesData = reactive({ options: {}, options2: {}, options3: {}, options4: {} });
+const statisticsInfo = reactive({});
+
+/*
+Computed: 计算属性
+*/
+const role = computed(() => (loginName === "admin" ? "超级管理员" : "普通用户"));
+const loginLocation = computed(() => {
+  if (!loginOther.login_location) {
+    return "-";
+  }
+  return `${loginOther.login_location.city} / ${loginOther.login_location.country}`;
+});
+/*
+Lifecycle: 事件方法和生命周期
+*/
+onBeforeMount(() => {
+  getAllInfo();
+  // 监听事件总线的某一个值
+  EventBus.$on("dynamicURLChange", handleDynamicURLChange);
+});
+onBeforeUnmount(() => {
+  // 取消监听
+  offEvent("dynamicURLChange", handleDynamicURLChange);
+});
+// 当点击"系统首页", 加载dashboard页面的时候, 该函数被调用
+onActivated(() => {
+  getAllInfo();
+  refreshInterval.value = setInterval(() => {
+    getAllInfo();
+  }, 60000);
+});
+// 功能: 当离开dashboard页面的时候被调用
+onDeactivated(() => {
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value);
+  }
+});
+
+/*
+Methods:
+*/
+function handleDynamicURLChange(newDynamicURLValue) {
+  dynamicBaseURL.value = newDynamicURLValue;
+}
+function isTodoItemDel(status) {
+  return parseInt(status) === 3;
+}
+// 注意, 在请求期间, 数据仍然是初始状态, 所以html中需要兼容
+function getAllInfo() {
+  getTodoListInfos();
+  getRecentSalesData();
+  getStatisticsInfo();
+}
+// 自定义事件的方法。当"collapse"事件被触发时调用: 重新渲染图表
+function handleBus(msg) {
+  setTimeout(() => {
+    renderChart();
+  } 200);
+}
+// 用于渲染图表的方法: 重新渲染柱状图, 重新渲染折线图
+function renderChart() {
+  barRef.value.renderChart();
+  lineRef.value.renderChart();
+}
+
+function handleTodoSizeChange(pageSize) {
+  todoPageSize.value = pageSize;
+  getStatisticsInfo();
+}
+function handleTodoPageChange(page) {
+  todoPage.value = page;
+  getStatisticsInfo();
+}
+
+// 获取todolist
+function getTodoListInfos() {
+  SimpleApi.fetchTodoListInfos()
+    .then((result) => {
+      var _rspInfo = result.data;
+      if (!checkRequestResult(_rspInfo, "获取todolist列表异常")) {
+        return;
+      }
+      this.todoList = _rspInfo.data;
+      this.todoPage = _rspInfo.pager.page;
+      this.todoPageSize = _rspInfo.pager.pageSize;
+      this.todoTotal = _rspInfo.pager.total;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+handleTodoEdit(todoId, row) {
+  this.todoHandleId = todoId;
+  const { id, title, desc, priority } = row;
+  this.todoEditForm = { id, title, desc, priority };
+  this.todoEditDialogVisible = true;
+}
+async handleTodoDelete(todoId, row) {
+  try {
+    await this.$confirm("确定要标记为删除吗？", "提示", {
+      type: "warning",
+    });
+    const { data: result } = await SimpleApi.UpdateTodoOneInfos(todoId, {
+      status: 4,
+    });
+    if (!this.checkRequestResult(result, "更新todo信息失败")) {
+      return;
+    }
+    this.getTodoListInfos();
+  } catch (error) {
+    console.error("删除操作取消或出错:", error);
+  }
+}
+async saveTodoEdit() {
+  // 发起修改用户信息的数据请求
+  const { data: result } = await SimpleApi.UpdateTodoOneInfos(this.todoEditForm.id, this.todoEditForm);
+  if (!this.checkRequestResult(result, "更新todo信息失败")) {
+    return;
+  }
+  this.todoEditDialogVisible = false;
+  this.getTodoListInfos();
+  this.$message.success("更新todo信息成功");
+}
+// 在勾选或取消勾选待办实现的时候触发回调
+async handleTodoCheckboxChange(row) {
+  status = row.status == 3 ? 1 : 3;
+
+  const { data: result } = await SimpleApi.UpdateTodoOneInfos(row.id, { status: parseInt(status) });
+  if (!this.checkRequestResult(result, `更新待办事项(${row.title})信息失败`)) {
+    return;
+  }
+
+  // 这种数组内的数据刷新不会触发自动刷新, 需要手动处理(注意status的类型)
+  this.$set(row, "status", status);
+}
+// 添加新的代办事项
+handleTodoAdd() {
+  this.todoAddForm = { title: "", desc: "", priority: 3 };
+  this.todoAddDialogVisible = true;
+}
+async saveTodoAdd() {
+  // 发起修改用户信息的数据请求
+  const { data: result } = await this.$http.post("other/todos", this.todoAddForm);
+  if (!this.checkRequestResult(result, "添加新待办事项失败")) {
+    return;
+  }
+  this.todoAddDialogVisible = false;
+  this.getTodoListInfos();
+  this.$message.success("更新todo信息成功");
+}
+// 批量更新待办事项状态
+async updateTodoStatus(status) {
+  const { data: result } = await this.$http.put(`other/todos/status/${status}`);
+  if (!this.checkRequestResult(result, "添加新待办事项失败")) {
+    return;
+  }
+}
+handleTodoMulComplete() {
+  this.updateTodoStatus(3);
+  this.getTodoListInfos();
+}
+handleTodoMulDelete() {
+  this.updateTodoStatus(4);
+  this.getTodoListInfos();
+}
+
+// 获取最近一周各品类销售数据
+getRecentSalesData() {
+  // 获取最近一周的日期范围，可以使用 JavaScript Date 对象进行计算
+  const today = new Date();
+  const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  // 格式化日期范围为字符串，如果需要传给 API 的话
+  const startDate = CommonDateHandler.formatDate(oneWeekAgo);
+  const endDate = CommonDateHandler.formatDate(today);
+
+  // 调用 API 方法获取最近一周的销售数据
+  SimpleApi.fetchSalesData({ startDate, endDate })
+    .then((result) => {
+      var _rspInfo = result.data;
+      if (!this.checkRequestResult(_rspInfo, "获取最近一周各品类销售数据异常")) {
+        return;
+      }
+      this.salesData = _rspInfo.data;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
+// 获取网站的统计信息
+getStatisticsInfo() {
+  SimpleApi.fetchStatisticsData()
+    .then((result) => {
+      var _rspInfo = result.data;
+      if (!this.checkRequestResult(_rspInfo, "获取网站的统计信息异常")) {
+        return;
+      }
+      this.statisticsInfo = _rspInfo.data;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+},
+
 export default {
   name: "dashboard",
   mixins: [requestMixin],
@@ -294,169 +519,6 @@ export default {
     clearInterval(this.refreshInterval);
   },
   methods: {
-    handleDynamicURLChange(newDynamicURLValue) {
-      this.dynamicBaseURL = newDynamicURLValue;
-    },
-    isTodoItemDel(status) {
-      return parseInt(status) === 3;
-    },
-    // 注意, 在请求期间, 数据仍然是初始状态, 所以html中需要兼容
-    getAllInfo() {
-      this.getTodoListInfos();
-      this.getRecentSalesData();
-      this.getStatisticsInfo();
-    },
-    // 自定义事件的方法。当"collapse"事件被触发时调用: 重新渲染图表
-    handleBus(msg) {
-      setTimeout(() => {
-        this.renderChart();
-      }, 200);
-    },
-    // 用于渲染图表的方法: 重新渲染柱状图, 重新渲染折线图
-    renderChart() {
-      this.$refs.bar.renderChart();
-      this.$refs.line.renderChart();
-    },
-
-    handleTodoSizeChange(pageSize) {
-      this.todoPageSize = pageSize;
-      this.getStatisticsInfo();
-    },
-    handleTodoPageChange(page) {
-      this.todoPage = page;
-      this.getStatisticsInfo();
-    },
-
-    // 获取todolist
-    getTodoListInfos() {
-      SimpleApi.fetchTodoListInfos()
-        .then((result) => {
-          var _rspInfo = result.data;
-          if (!this.checkRequestResult(_rspInfo, "获取todolist列表异常")) {
-            return;
-          }
-          this.todoList = _rspInfo.data;
-          this.todoPage = _rspInfo.pager.page;
-          this.todoPageSize = _rspInfo.pager.pageSize;
-          this.todoTotal = _rspInfo.pager.total;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-    handleTodoEdit(todoId, row) {
-      this.todoHandleId = todoId;
-      const { id, title, desc, priority } = row;
-      this.todoEditForm = { id, title, desc, priority };
-      this.todoEditDialogVisible = true;
-    },
-    async handleTodoDelete(todoId, row) {
-      try {
-        await this.$confirm("确定要标记为删除吗？", "提示", {
-          type: "warning",
-        });
-        const { data: result } = await SimpleApi.UpdateTodoOneInfos(todoId, {
-          status: 4,
-        });
-        if (!this.checkRequestResult(result, "更新todo信息失败")) {
-          return;
-        }
-        this.getTodoListInfos();
-      } catch (error) {
-        console.error("删除操作取消或出错:", error);
-      }
-    },
-    async saveTodoEdit() {
-      // 发起修改用户信息的数据请求
-      const { data: result } = await SimpleApi.UpdateTodoOneInfos(this.todoEditForm.id, this.todoEditForm);
-      if (!this.checkRequestResult(result, "更新todo信息失败")) {
-        return;
-      }
-      this.todoEditDialogVisible = false;
-      this.getTodoListInfos();
-      this.$message.success("更新todo信息成功");
-    },
-    // 在勾选或取消勾选待办实现的时候触发回调
-    async handleTodoCheckboxChange(row) {
-      status = row.status == 3 ? 1 : 3;
-
-      const { data: result } = await SimpleApi.UpdateTodoOneInfos(row.id, { status: parseInt(status) });
-      if (!this.checkRequestResult(result, `更新待办事项(${row.title})信息失败`)) {
-        return;
-      }
-
-      // 这种数组内的数据刷新不会触发自动刷新, 需要手动处理(注意status的类型)
-      this.$set(row, "status", status);
-    },
-    // 添加新的代办事项
-    handleTodoAdd() {
-      this.todoAddForm = { title: "", desc: "", priority: 3 };
-      this.todoAddDialogVisible = true;
-    },
-    async saveTodoAdd() {
-      // 发起修改用户信息的数据请求
-      const { data: result } = await this.$http.post("other/todos", this.todoAddForm);
-      if (!this.checkRequestResult(result, "添加新待办事项失败")) {
-        return;
-      }
-      this.todoAddDialogVisible = false;
-      this.getTodoListInfos();
-      this.$message.success("更新todo信息成功");
-    },
-    // 批量更新待办事项状态
-    async updateTodoStatus(status) {
-      const { data: result } = await this.$http.put(`other/todos/status/${status}`);
-      if (!this.checkRequestResult(result, "添加新待办事项失败")) {
-        return;
-      }
-    },
-    handleTodoMulComplete() {
-      this.updateTodoStatus(3);
-      this.getTodoListInfos();
-    },
-    handleTodoMulDelete() {
-      this.updateTodoStatus(4);
-      this.getTodoListInfos();
-    },
-
-    // 获取最近一周各品类销售数据
-    getRecentSalesData() {
-      // 获取最近一周的日期范围，可以使用 JavaScript Date 对象进行计算
-      const today = new Date();
-      const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-      // 格式化日期范围为字符串，如果需要传给 API 的话
-      const startDate = CommonDateHandler.formatDate(oneWeekAgo);
-      const endDate = CommonDateHandler.formatDate(today);
-
-      // 调用 API 方法获取最近一周的销售数据
-      SimpleApi.fetchSalesData({ startDate, endDate })
-        .then((result) => {
-          var _rspInfo = result.data;
-          if (!this.checkRequestResult(_rspInfo, "获取最近一周各品类销售数据异常")) {
-            return;
-          }
-          this.salesData = _rspInfo.data;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-
-    // 获取网站的统计信息
-    getStatisticsInfo() {
-      SimpleApi.fetchStatisticsData()
-        .then((result) => {
-          var _rspInfo = result.data;
-          if (!this.checkRequestResult(_rspInfo, "获取网站的统计信息异常")) {
-            return;
-          }
-          this.statisticsInfo = _rspInfo.data;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
   },
 };
 </script>

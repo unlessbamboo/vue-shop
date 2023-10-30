@@ -1,62 +1,73 @@
-import Vue from "vue";
+import { createApp } from "vue";
 import App from "./App.vue";
-import moment from "moment";
 import router from "./router";
 import store from "./store/vuex";
-import ElementUI from "element-ui";
-import VueI18n from "vue-i18n";
+import ElementPlus from "element-plus";
+import { createI18n } from "vue-i18n";
 import TreeTable from "vue-table-with-tree-grid";
 import VueQuillEditor from "vue-quill-editor";
-import "quill/dist/quill.core.css"; // import styles
-import "quill/dist/quill.snow.css"; // for snow theme
-import "quill/dist/quill.bubble.css"; // for bubble theme
-
-import "element-ui/lib/theme-chalk/index.css"; // 默认主题
-
-import {messages} from "@/utils/i18n";
+import "quill/dist/quill.core.css";
+import "quill/dist/quill.snow.css";
+import "quill/dist/quill.bubble.css";
+import "element-plus/dist/index.css";
+import * as ElementPlusIconsVue from "@element-plus/icons-vue"; // 引入所有图标，并命名为 Icons
 import axiosapi from "@/utils/request";
+import elementMessage from "@/utils/message";
+import { messages } from "@/utils/i18n";
 import "@/assets/css/icon.css";
-import "@/plugins/directives";
-import "babel-polyfill";
 import "@/auxiliary";
 
-Vue.prototype.$http = axiosapi;
-Vue.config.productionTip = false;
+import { FontAwesomeIcon } from "@/icon.js";
+import dialogDrag from "@/plugins/directives";
 
-Vue.component("tree-table", TreeTable);
-Vue.use(VueQuillEditor);
-Vue.use(VueI18n);
-Vue.use(ElementUI, {
+const app = createApp(App);
+
+app.config.globalProperties.$http = axiosapi;
+app.config.globalProperties.$message = elementMessage; // 用于替代vue2中的this.$message
+
+// 全局注册elementplus图标
+Object.keys(ElementPlusIconsVue).forEach((key) => {
+  app.component(key, ElementPlusIconsVue[key]);
+});
+
+app.component("tree-table", TreeTable);
+app.use(VueQuillEditor);
+app.use(ElementPlus, {
   size: "small",
 });
-const i18n = new VueI18n({
+
+const i18n = createI18n({
   locale: "zh",
   messages,
 });
 
-Vue.filter("dateFormat", function (originVal) {
-  if (typeof originVal === "string") {
-    return originVal;
-  }
+app.use(i18n);
 
-  const dt = new Date(originVal * 1000);
-  const y = dt.getFullYear();
-  const m = (dt.getMonth() + 1 + "").padStart(2, "0"); // 如果不是两位前面用0填充
-  const d = (dt.getDate() + "").padStart(2, "0");
-  const hh = (dt.getHours() + "").padStart(2, "0");
-  const mm = (dt.getMinutes() + "").padStart(2, "0");
-  const ss = (dt.getSeconds() + "").padStart(2, "0");
-  return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
-});
+app.config.globalProperties.$filters = {
+  dateFormat(originVal) {
+    if (typeof originVal === "string") {
+      return originVal;
+    }
 
-Vue.filter("dateFormatConvert", function (value) {
-  if (!value) return "";
-  return moment(value).format("YYYY-MM-DD HH:mm:ss");
-});
+    const dt = new Date(originVal * 1000);
+    const y = dt.getFullYear();
+    const m = (dt.getMonth() + 1 + "").padStart(2, "0");
+    const d = (dt.getDate() + "").padStart(2, "0");
+    const hh = (dt.getHours() + "").padStart(2, "0");
+    const mm = (dt.getMinutes() + "").padStart(2, "0");
+    const ss = (dt.getSeconds() + "").padStart(2, "0");
+    return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+  },
 
-new Vue({
-  store,
-  router,
-  i18n,
-  render: (h) => h(App),
-}).$mount("#app");
+  dateFormatConvert(value) {
+    if (!value) return "";
+    return moment(value).format("YYYY-MM-DD HH:mm:ss");
+  },
+};
+
+app
+  .directive("dialogDrag", dialogDrag)
+  .component("font-awesome-icon", FontAwesomeIcon)
+  .use(store)
+  .use(router)
+  .mount("#app");

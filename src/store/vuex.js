@@ -1,9 +1,6 @@
-import Vue from "vue";
-import Vuex from "vuex";
+import { createStore } from "vuex";
 
-Vue.use(Vuex);
-
-export default new Vuex.Store({
+export default createStore({
   state: {
     // 网站主页的导航屑列表
     tagsList: [],
@@ -14,7 +11,7 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    updateTagsList({commit}, tags) {
+    updateTagsList({ commit }, tags) {
       commit("SET_TAGS_LIST", tags);
     },
   },

@@ -34,9 +34,9 @@
  *  6. vuex: 解决了bus在复杂关系组件间共享数据的一个非常混乱关系
  *      区别: 实际上就是将数据, 方法都独立到vuex中, 这点不同于bus, bus仅仅为各个组件提供了一种通信方式
  */
-import Vue from "vue";
+import mitt from "mitt";
 
 // 使用 Event Bus
-const bus = new Vue();
+const bus = mitt();
 
 export default bus;

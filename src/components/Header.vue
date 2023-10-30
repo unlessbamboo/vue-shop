@@ -94,9 +94,9 @@ export default {
   mixins: [requestMixin],
   data() {
     return {
-      flaskSwagger: process.env.VUE_APP_FLASK_BACKEND_HOST + "/api/v1/swagger",
-      djangoSwagger: process.env.VUE_APP_DJANGO_BACKEND_HOST + "/api/v1/swagger/",
-      ginSwagger: process.env.VUE_APP_GIN_BACKEND_HOST + "/api/v1/swagger/index.html",
+      flaskSwagger: import.meta.env.VITE_APP_FLASK_BACKEND_HOST + "/api/v1/swagger",
+      djangoSwagger: import.meta.env.VITE_APP_DJANGO_BACKEND_HOST + "/api/v1/swagger/",
+      ginSwagger: import.meta.env.VITE_APP_GIN_BACKEND_HOST + "/api/v1/swagger/index.html",
       collapse: true, // 默认打开侧边栏
       fullscreen: false,
       name: "linxin",
@@ -137,7 +137,7 @@ export default {
     },
     // 跳转到个人主页
     handleGoHome() {
-      var homePage = process.env.VUE_APP_MYHOME_HOST;
+      var homePage = import.meta.env.VITE_APP_MYHOME_HOST;
       window.location.href = homePage;
     },
 
@@ -147,11 +147,11 @@ export default {
       var newBaseHost = "";
 
       if (cmd == "flaskapi") {
-        newBaseHost = process.env.VUE_APP_FLASK_BACKEND_HOST;
+        newBaseHost = import.meta.env.VITE_APP_FLASK_BACKEND_HOST;
       } else if (cmd == "djangoapi") {
-        newBaseHost = process.env.VUE_APP_DJANGO_BACKEND_HOST;
+        newBaseHost = import.meta.env.VITE_APP_DJANGO_BACKEND_HOST;
       } else {
-        newBaseHost = process.env.VUE_APP_GIN_BACKEND_HOST;
+        newBaseHost = import.meta.env.VITE_APP_GIN_BACKEND_HOST;
       }
 
       if (newBaseHost == oldBaseHost) {
