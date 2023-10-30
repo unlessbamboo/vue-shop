@@ -42,7 +42,7 @@ export default {
   methods: {
     async getRightsList() {
       const { data: result } = await this.$http.get("auth/permissions");
-      if (!this.checkRequestResult(result, "获取权限列表失败！")) {
+      if (!checkRequestResult(result, "获取权限列表失败！")) {
         return;
       }
       this.rightsList = result.data.infos;

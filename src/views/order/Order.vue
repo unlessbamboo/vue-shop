@@ -28,7 +28,7 @@
         <el-table-column label="是否发货" prop="is_send"></el-table-column>
         <el-table-column label="下单时间" prop="create_at">
           <template slot-scope="scope">
-            {{ scope.row.create_at | dateFormat }}
+            {{ $filters.dateFormat(scope.row.create_at) }}
           </template>
         </el-table-column>
         <el-table-column label="操作">
@@ -51,7 +51,7 @@
     </el-card>
 
     <!-- 修改修改地址的对话框 -->
-    <el-dialog title="修改地址" :visible.sync="addressVisible" width="50%" @close="addressDialogClosed">
+    <el-dialog title="修改地址" v-model="addressVisible" width="50%" @close="addressDialogClosed">
       <!-- 内容主体区域 -->
       <el-form :model="addressForm" :rules="addressFormRules" ref="addressFormRef" label-width="100px">
         <el-form-item label="省市区/县" prop="address1">
@@ -69,7 +69,7 @@
     </el-dialog>
 
     <!-- 展示物流进度的对话框 -->
-    <el-dialog title="物流进度" :visible.sync="progressVisible" width="50%">
+    <el-dialog title="物流进度" v-model="progressVisible" width="50%">
       <!-- 内容主体区域 时间线 -->
       <el-timeline>
         <el-timeline-item v-for="(activity, index) in progressInfo" :key="index" :timestamp="activity.time">
@@ -120,7 +120,7 @@ export default {
       const { data: result } = await this.$http.get("order", {
         params: this.queryInfo,
       });
-      if (!this.checkRequestResult(result, "获取订单列表失败")) {
+      if (!checkRequestResult(result, "获取订单列表失败")) {
         return;
       }
       this.total = result.pager.total;

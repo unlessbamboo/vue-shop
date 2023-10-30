@@ -135,7 +135,7 @@
     </el-card>
 
     <!-- 添加参数对话框 -->
-    <el-dialog :title="`添加${titleText}`" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
+    <el-dialog :title="`添加${titleText}`" v-model="addDialogVisible" width="50%" @close="addDialogClosed">
       <!-- 内容主体区域 -->
       <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="100px">
         <el-form-item :label="titleText" prop="name">
@@ -153,7 +153,7 @@
     </el-dialog>
 
     <!-- 修改参数对话框 -->
-    <el-dialog :title="`修改${titleText}`" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
+    <el-dialog :title="`修改${titleText}`" v-model="editDialogVisible" width="50%" @close="editDialogClosed">
       <!-- 内容主体区域 -->
       <el-form :model="editForm" :rules="addFormRules" ref="editFormRef" label-width="100px">
         <el-form-item :label="`${titleText}`" prop="name">
@@ -174,11 +174,12 @@
 
 <script>
 import SimpleApi from "@/api/simpleApi";
-import requestMixin from "@/mixins/requestMixin";
 import categoryMixin from "@/mixins/categoryMixin";
+import { ElMessageBox } from "element-plus";
+import { checkRequestResult } from "@/mixins/requestCommon";
 
 export default {
-  mixins: [requestMixin, categoryMixin],
+  mixins: [categoryMixin],
   data() {
     return {
       // 级联选择框双向绑定到的数组
@@ -234,7 +235,7 @@ export default {
       const { data: result } = await this.$http.get(`goods/categories/${this.cateId}/attributes`, {
         params: { select: this.activeName },
       });
-      if (!this.checkRequestResult(result, "获取参数列表失败")) {
+      if (!checkRequestResult(result, "获取参数列表失败")) {
         return;
       }
 
@@ -265,10 +266,10 @@ export default {
           values: this.addForm.values,
           select: this.activeName,
         });
-        if (!this.checkRequestResult(result, "添加参数失败")) {
+        if (!checkRequestResult(result, "添加参数失败")) {
           return;
         }
-        this.$message.success("添加参数成功！");
+        $eMessage.success("添加参数成功！");
         this.addDialogVisible = false;
         this.getParamsData();
       });
@@ -278,7 +279,7 @@ export default {
       const { data: result } = await this.$http.get(`goods/categories/${this.cateId}/attributes/${id}`, {
         params: { select: this.activeName },
       });
-      if (!this.checkRequestResult(result, "获取参数失败！")) {
+      if (!checkRequestResult(result, "获取参数失败！")) {
         return;
       }
       this.editForm = result.data;
@@ -299,31 +300,31 @@ export default {
             select: this.activeName,
           },
         );
-        if (!this.checkRequestResult(result, "修改参数失败！")) {
+        if (!checkRequestResult(result, "修改参数失败！")) {
           return;
         }
-        this.$message.success("修改参数成功！");
+        $eMessage.success("修改参数成功！");
         this.getParamsData();
         this.editDialogVisible = false;
       });
     },
     // 根据id删除参数
     async removeParams(id) {
-      const confirmResut = await this.$confirm("此操作将永远删除该参数，是否继续？", "提示", {
+      const confirmResut = await ElMessageBox.confirm("此操作将永远删除该参数，是否继续？", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       }).catch((err) => err);
 
       if (confirmResut !== "confirm") {
-        return this.$message.info("已取消删除");
+        return $eMessage.info("已取消删除");
       }
       // 删除
       const { data: result } = await this.$http.delete(`goods/categories/${this.cateId}/attributes/${id}`);
-      if (!this.checkRequestResult(result, "删除属性失败！")) {
+      if (!checkRequestResult(result, "删除属性失败！")) {
         return;
       }
-      this.$message.success("删除属性成功！");
+      $eMessage.success("删除属性成功！");
       this.getParamsData();
     },
     // 文本框失去焦点，或按下Enter键，都会触发
@@ -362,10 +363,10 @@ export default {
         select: row.select,
         values: row.values.join(" "),
       });
-      if (!this.checkRequestResult(result, "修改参数项失败！")) {
+      if (!checkRequestResult(result, "修改参数项失败！")) {
         return;
       }
-      this.$message.success("修改参数项成功！");
+      $eMessage.success("修改参数项成功！");
     },
   },
   computed: {

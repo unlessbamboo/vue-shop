@@ -54,14 +54,14 @@ export default {
     submitForm() {
       this.$refs.login.validate(async (valid) => {
         if (!valid) {
-          this.$message.error("请输入账号和密码");
+          $eMessage.error("请输入账号和密码");
           console.log("error submit!!");
           return false;
         }
         const { data: result } = await this.$http.post("auth/login", this.loginForm);
-        if (result.code !== 100000) return this.$message.error("登录失败");
+        if (result.code !== 100000) return $eMessage.error("登录失败");
 
-        this.$message.success("登录成功");
+        $eMessage.success("登录成功");
 
         // 存储在local storage中
         localStorage.setItem("ms_username", this.loginForm.username);

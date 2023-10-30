@@ -27,7 +27,7 @@ export default {
     // 获取所有的商品分类列表
     async getCateSimpleList() {
       const { data: result } = await this.$http.get("goods/categories/simpleinfo");
-      if (!this.checkRequestResult(result, "获取商品分类列表失败！")) {
+      if (!checkRequestResult(result, "获取商品分类列表失败！")) {
         return;
       }
       this.cateList = result.data.infos;

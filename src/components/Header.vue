@@ -124,7 +124,7 @@ export default {
     // 获取消息简要统计信息
     async getMessageStatistics() {
       const { data: result } = await SimpleApi.fetchMessageStatistics();
-      if (!this.checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
+      if (!checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
         return;
       }
       this.message = result.data.unread;
@@ -160,7 +160,7 @@ export default {
 
       window.sessionStorage.setItem("shopDynamicHost", newBaseHost);
       bus.$emit("dynamicURLChange", newBaseHost); // 使用事件总线进行通知
-      this.$message.success("成功切换后端服务为:" + newBaseHost);
+      $eMessage.success("成功切换后端服务为:" + newBaseHost);
     },
 
     // 全屏事件, 下面的代码是通用方式(chatgpt也是这样写的)

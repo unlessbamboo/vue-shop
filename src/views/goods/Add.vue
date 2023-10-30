@@ -100,7 +100,7 @@
         </el-tabs>
       </el-form>
     </el-card>
-    <el-dialog title="图片预览" :visible.sync="previewVisible" width="50%">
+    <el-dialog title="图片预览" v-model="previewVisible" width="50%">
       <img :src="previewPath" alt="" class="priviewImg" />
     </el-dialog>
   </div>
@@ -211,7 +211,7 @@ export default {
     },
     beforeTabLeave(activeName, oldActiveName) {
       if (oldActiveName === "0" && this.addForm.categories.length !== 3) {
-        this.$message.error("请先选择商品分类！");
+        $eMessage.error("请先选择商品分类！");
         return false;
       }
     },
@@ -220,7 +220,7 @@ export default {
         const { data: result } = await this.$http.get(`goods/categories/${this.cateId}/attributes`, {
           params: { select: "many" },
         });
-        if (!this.checkRequestResult(result, "获取状态参数列表失败！")) {
+        if (!checkRequestResult(result, "获取状态参数列表失败！")) {
           return;
         }
         result.data.forEach((item) => {
@@ -231,7 +231,7 @@ export default {
         const { data: result } = await this.$http.get(`goods/categories/${this.cateId}/attributes`, {
           params: { select: "only" },
         });
-        if (!this.checkRequestResult(result, "获取状态参数列表失败！")) {
+        if (!checkRequestResult(result, "获取状态参数列表失败！")) {
           return;
         }
         result.data.forEach((item) => {
@@ -270,7 +270,7 @@ export default {
     addGoods() {
       this.$refs.addFormRef.validate(async (valid) => {
         if (!valid) {
-          return this.$message.error("填写必要的表单项！");
+          return $eMessage.error("填写必要的表单项！");
         }
         // 执行添加的业务逻辑
         const form = _.cloneDeep(this.addForm);
@@ -294,10 +294,10 @@ export default {
         // 发起请求添加商品
         // 商品的名称必须是唯一的
         const { data: result } = await this.$http.post("goods", form);
-        if (!this.checkRequestResult(result, "添加商品失败")) {
+        if (!checkRequestResult(result, "添加商品失败")) {
           return;
         }
-        this.$message.success("添加商品成功");
+        $eMessage.success("添加商品成功");
         this.$router.push("/goods");
       });
     },

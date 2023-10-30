@@ -151,7 +151,7 @@ export default {
   methods: {
     async reload() {
       const { data: result } = await SimpleApi.fetchSystemInfo();
-      if (!this.checkRequestResult(result, "获取系统基本监控信息异常")) {
+      if (!checkRequestResult(result, "获取系统基本监控信息异常")) {
         return;
       }
       this.state = result.data;

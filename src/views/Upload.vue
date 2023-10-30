@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <el-dialog title="裁剪图片" :visible.sync="dialogVisible" width="30%">
+      <el-dialog title="裁剪图片" v-model="dialogVisible" width="30%">
         <vue-cropper
           ref="cropper"
           :src="imgSrc"

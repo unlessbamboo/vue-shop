@@ -70,10 +70,10 @@ export default {
       this.$refs.resetPassword.validate((valid) => {
         if (valid) {
           // 处理重置密码逻辑，可以在这里提交新密码
-          this.$message.success("重置密码成功");
+          $eMessage.success("重置密码成功");
           this.$router.push("/auth/login"); // 重置密码成功后跳转到登录页
         } else {
-          this.$message.error("请输入正确的新密码");
+          $eMessage.error("请输入正确的新密码");
         }
       });
     },

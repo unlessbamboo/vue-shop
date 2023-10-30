@@ -17,13 +17,13 @@ import { messages } from "@/utils/i18n";
 import "@/assets/css/icon.css";
 import "@/auxiliary";
 
-import { FontAwesomeIcon } from "@/icon.js";
+import { FontAwesomeIcon } from "@/utils/icon";
 import dialogDrag from "@/plugins/directives";
 
 const app = createApp(App);
 
 app.config.globalProperties.$http = axiosapi;
-app.config.globalProperties.$message = elementMessage; // 用于替代vue2中的this.$message
+app.config.globalProperties.$eMessage = elementMessage; // 用于替代vue2中的$eMessage.
 
 // 全局注册elementplus图标
 Object.keys(ElementPlusIconsVue).forEach((key) => {

@@ -84,7 +84,7 @@
     </el-card>
 
     <!-- 3. 添加角色的对话框 -->
-    <el-dialog title="添加角色" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
+    <el-dialog title="添加角色" v-model="addDialogVisible" width="50%" @close="addDialogClosed">
       <!-- 内容主体区域 -->
       <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="80px">
         <el-form-item label="角色值" prop="value">
@@ -105,7 +105,7 @@
     </el-dialog>
 
     <!-- 4. 修改用户的对话框 -->
-    <el-dialog title="修改角色" :visible.sync="editDialogVisible" width="50%">
+    <el-dialog title="修改角色" v-model="editDialogVisible" width="50%">
       <!-- 内容主体区域 -->
       <el-form :model="editForm" :rules="addFormRules" ref="editFormRef" label-width="80px">
         <el-form-item label="角色名称" prop="name">
@@ -123,7 +123,7 @@
     </el-dialog>
 
     <!-- 5. 分配权限的对话框 -->
-    <el-dialog title="分配权限" :visible.sync="setRightDialogVisible" width="50%" @close="setRightDialogClosed">
+    <el-dialog title="分配权限" v-model="setRightDialogVisible" width="50%" @close="setRightDialogClosed">
       <!-- 内容主体区域 树形控件: 
           data: 数据
           props: 数据的格式指定
@@ -150,9 +150,10 @@
 <script>
 import SimpleApi from "@/api/simpleApi";
 import requestMixin from "@/mixins/requestMixin";
+import { ElMessageBox } from "element-plus";
+import { checkRequestResult } from "@/mixins/requestCommon";
 
 export default {
-  mixins: [requestMixin],
   data() {
     return {
       // 所有角色列表数据
@@ -202,7 +203,7 @@ export default {
     // 获取所有角色的列表
     async getRolesList() {
       const { data: result } = await this.$http.get("auth/roles");
-      if (!this.checkRequestResult(result, "获取角色列表失败！")) {
+      if (!checkRequestResult(result, "获取角色列表失败！")) {
         return;
       }
       this.roleList = result.data;
@@ -217,10 +218,10 @@ export default {
       this.$refs.addFormRef.validate(async (valid) => {
         if (!valid) return;
         const { data: result } = await this.$http.post("auth/roles", this.addForm);
-        if (!this.checkRequestResult(result, "添加角色失败！")) {
+        if (!checkRequestResult(result, "添加角色失败！")) {
           return;
         }
-        this.$message.success("添加角色成功！");
+        $eMessage.success("添加角色成功！");
         this.addDialogVisible = false;
         this.getRolesList();
       });
@@ -229,7 +230,7 @@ export default {
     async showEditDialog(id) {
       this.editDialogVisible = true;
       const { data: result } = await this.$http.get("auth/roles/" + id);
-      if (!this.checkRequestResult(result, "查询用户信息失败！")) {
+      if (!checkRequestResult(result, "查询用户信息失败！")) {
         return;
       }
       this.editForm = result.data;
@@ -243,7 +244,7 @@ export default {
           name: this.editForm.name,
           desc: this.editForm.desc,
         });
-        if (!this.checkRequestResult(result, "更新角色失败")) {
+        if (!checkRequestResult(result, "更新角色失败")) {
           return;
         }
         // 关闭对话框
@@ -251,26 +252,26 @@ export default {
         // 重新获取用户列表
         this.getRolesList();
         // 提示修改成功
-        this.$message.success("更新角色信息成功");
+        $eMessage.success("更新角色信息成功");
       });
     },
     // 根据id删除对应的用户信息
     async removeRoleById(id) {
       // 弹框提示用户是否删除数据
-      const confirmResult = await this.$confirm("此操作将永久删除该角色，是否继续？", "提示", {
+      const confirmResult = await ElMessageBox.confirm("此操作将永久删除该角色，是否继续？", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       }).catch((error) => error);
       if (confirmResult !== "confirm") {
-        return this.$message.info("已经取消删除");
+        return $eMessage.info("已经取消删除");
       }
 
       const { data: result } = await this.$http.delete("auth/roles/" + id);
-      if (!this.checkRequestResult(result, "删除角色失败")) {
+      if (!checkRequestResult(result, "删除角色失败")) {
         return;
       }
-      this.$message.success("删除角色成功");
+      $eMessage.success("删除角色成功");
       this.getRolesList();
     },
 
@@ -280,21 +281,21 @@ export default {
      */
     async removeRightById(role, permissionId) {
       // a. 弹框提示用户是否删除数据
-      const confirmResult = await this.$confirm("此操作将永久删除该权限，是否继续？", "提示", {
+      const confirmResult = await ElMessageBox.confirm("此操作将永久删除该权限，是否继续？", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       }).catch((error) => error);
       if (confirmResult !== "confirm") {
-        return this.$message.info("已经取消删除");
+        return $eMessage.info("已经取消删除");
       }
 
       // b. 执行删除操作, 返回删除完成之后role的新值(role + permission)
       const { data: result } = await this.$http.delete("auth/roles/" + role.id + "/permission/" + permissionId);
-      if (!this.checkRequestResult(result, "删除权限失败！")) {
+      if (!checkRequestResult(result, "删除权限失败！")) {
         return;
       }
-      this.$message.success("删除权限成功");
+      $eMessage.success("删除权限成功");
       role.permission_infos = result.data.permission_infos;
     },
 
@@ -303,7 +304,7 @@ export default {
       this.roleId = role.id;
       // 获取所有权限数据
       const { data: result } = await this.$http.get("auth/permissions/tree");
-      if (!this.checkRequestResult(result, "获取权限数据失败！")) {
+      if (!checkRequestResult(result, "获取权限数据失败！")) {
         return;
       }
       // 获取到的权限数据保存到permissionInfoList中
@@ -365,10 +366,10 @@ export default {
       const { data: result } = await this.$http.put(`auth/roles/${this.roleId}`, {
         permission_ids: newPermissionInfos,
       });
-      if (!this.checkRequestResult(result, "分配权限失败！")) {
+      if (!checkRequestResult(result, "分配权限失败！")) {
         return;
       }
-      this.$message.success("分配权限成功");
+      $eMessage.success("分配权限成功");
       this.getRolesList();
       this.setRightDialogVisible = false;
     },

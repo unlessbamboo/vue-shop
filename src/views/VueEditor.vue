@@ -44,7 +44,7 @@ export default {
     },
     submit() {
       console.log(this.content);
-      this.$message.success("提交成功！");
+      $eMessage.success("提交成功！");
     },
   },
 };

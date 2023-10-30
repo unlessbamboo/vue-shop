@@ -32,7 +32,7 @@
         <el-table-column label="商品重量" prop="weight" width="70px"></el-table-column>
         <el-table-column label="创建时间" prop="create_at" width="145px">
           <template slot-scope="scope">
-            {{ scope.row.create_at | dateFormat }}
+            {{ $filters.dateFormat(scope.row.create_at) }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="130px">
@@ -60,7 +60,7 @@
     </el-card>
 
     <!-- 3. 添加角色的对话框 -->
-    <el-dialog title="修改商品" :visible.sync="editGoodsDialogVisible" width="50%">
+    <el-dialog title="修改商品" v-model="editGoodsDialogVisible" width="50%">
       <!-- 内容主体区域 -->
       <el-form :model="editGoodsForm" :rules="editGoodsFormRules" ref="editGoodsFormRef" label-width="80px">
         <el-form-item label="商品名称" prop="name">
@@ -87,10 +87,10 @@
 
 <script>
 import SimpleApi from "@/api/simpleApi";
-import requestMixin from "@/mixins/requestMixin";
+import { ElMessageBox } from "element-plus";
+import { checkRequestResult } from "@/mixins/requestCommon";
 
 export default {
-  mixins: [requestMixin],
   data() {
     return {
       // 查询参数对象
@@ -123,10 +123,10 @@ export default {
       const { data: result } = await this.$http.get("goods", {
         params: this.queryInfo,
       });
-      if (!this.checkRequestResult(result, "获取商品列表失败！")) {
+      if (!checkRequestResult(result, "获取商品列表失败！")) {
         return;
       }
-      this.$message.success("获取商品列表成功！");
+      $eMessage.success("获取商品列表成功！");
       this.goodsList = result.data;
       this.total = result.pager.total;
     },
@@ -139,19 +139,19 @@ export default {
       this.getGoodsList();
     },
     async removeById(id) {
-      const confirmResult = await this.$confirm("此操作将永久删除该商品, 是否继续?", "提示", {
+      const confirmResult = await ElMessageBox.confirm("此操作将永久删除该商品, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       }).catch((error) => error);
       if (confirmResult !== "confirm") {
-        return this.$message.info("已取消删除！");
+        return $eMessage.info("已取消删除！");
       }
       const { data: result } = await this.$http.delete(`goods/${id}`);
-      if (!this.checkRequestResult(result, "删除失败！")) {
+      if (!checkRequestResult(result, "删除失败！")) {
         return;
       }
-      this.$message.success("删除成功！");
+      $eMessage.success("删除成功！");
       this.getGoodsList();
     },
     goAddPage() {
@@ -165,7 +165,7 @@ export default {
         if (!valid) return;
 
         const { data: result } = await this.$http.put("goods/" + this.editGoodsForm.id, this.editGoodsForm);
-        if (!this.checkRequestResult(result, "更新商品信息失败")) {
+        if (!checkRequestResult(result, "更新商品信息失败")) {
           return;
         }
         // 关闭对话框
@@ -173,7 +173,7 @@ export default {
         // 重新获取用户列表
         this.getGoodsList();
         // 提示修改成功
-        this.$message.success("更新角色信息成功");
+        $eMessage.success("更新角色信息成功");
       });
     },
     /*

@@ -134,7 +134,7 @@
     </div>
 
     <!-- 3. 编辑弹出框, 注意el-form-item中的prop实际上和rules中的key对应 -->
-    <el-dialog title="编辑" :visible.sync="editDialogVisible" width="30%">
+    <el-dialog title="编辑" v-model="editDialogVisible" width="30%">
       <el-form ref="editFormRef" :model="editForm" :rules="addFormRules" label-width="70px">
         <el-form-item label="昵称" prop="nickname">
           <el-input v-model="editForm.nickname"></el-input>
@@ -153,7 +153,7 @@
     </el-dialog>
 
     <!-- 4. 分配角色的对话框 -->
-    <el-dialog title="分配角色" :visible.sync="setRoleDialogVisible" width="50%" @close="setRoleDialogClosed">
+    <el-dialog title="分配角色" v-model="setRoleDialogVisible" width="50%" @close="setRoleDialogClosed">
       <div>
         <p>当前用户：{{ selectUserInfo.username }}</p>
         <p>当前角色：{{ selectUserInfo.role_name }}</p>
@@ -175,7 +175,8 @@
 
 <script>
 import SimpleApi from "@/api/simpleApi";
-import requestMixin from "@/mixins/requestMixin";
+import { ElMessageBox } from "element-plus";
+import { checkRequestResult } from "@/mixins/requestCommon";
 
 export default {
   name: "basetable",
@@ -263,7 +264,7 @@ export default {
     getUserList() {
       SimpleApi.fetchPersonInfos(this.searchForm).then((res) => {
         const { data: result } = res;
-        if (!this.checkRequestResult(result, "获取用户列表异常")) {
+        if (!checkRequestResult(result, "获取用户列表异常")) {
           return;
         }
         this.personInfoList = result.data;
@@ -275,10 +276,10 @@ export default {
       this.selectUserInfo = userInfo;
       // 在展示对话框之前获取所有角色的列表
       const { data: result } = await this.$http.get("auth/roles");
-      if (!this.checkRequestResult(result, "获取角色列表失败！")) {
+      if (!checkRequestResult(result, "获取角色列表失败！")) {
         return;
       }
-      this.$message.success("获取角色列表成功！");
+      $eMessage.success("获取角色列表成功！");
       this.rolesList = result.data;
       this.setRoleDialogVisible = true;
     },
@@ -290,15 +291,15 @@ export default {
     // 点击按钮分配角色
     async saveRoleInf() {
       if (!this.selectedRoleId) {
-        return this.$message.error("请选择一个角色！");
+        return $eMessage.error("请选择一个角色！");
       }
       const { data: result } = await this.$http.put(`auth/users/${this.selectUserInfo.id}/role`, {
         role_id: this.selectedRoleId,
       });
-      if (!this.checkRequestResult(result, "更新角色失败！")) {
+      if (!checkRequestResult(result, "更新角色失败！")) {
         return;
       }
-      this.$message.success("更新角色成功！");
+      $eMessage.success("更新角色成功！");
       // 刷新当前角色列表
       this.getUserList();
       // 隐藏当前分配角色对话框
@@ -313,11 +314,11 @@ export default {
     // 删除操作
     handleDelete(index, row) {
       // 二次确认删除
-      this.$confirm("确定要删除吗？", "提示", {
+      ElMessageBox.confirm("确定要删除吗？", "提示", {
         type: "warning",
       })
         .then(() => {
-          this.$message.success("删除成功");
+          $eMessage.success("删除成功");
           var item = this.personInfoList.splice(index, 1);
           if (item) {
             // 将选项框中的匹配元素也剔除
@@ -338,7 +339,7 @@ export default {
     delAllSelection() {
       const length = this.multipleSelection.length;
       if (length === 0) {
-        this.$message.error("未选中任何项, 无法进行批量删除操作, 请检查");
+        $eMessage.error("未选中任何项, 无法进行批量删除操作, 请检查");
         return;
       }
       let str = "";
@@ -346,7 +347,7 @@ export default {
       for (let i = 0; i < length; i++) {
         str += this.multipleSelection[i].username + " ";
       }
-      this.$message.error(`删除了${str}`);
+      $eMessage.error(`删除了${str}`);
       this.multipleSelection = [];
     },
     // 编辑操作
@@ -358,14 +359,14 @@ export default {
     },
     // 保存编辑
     saveEdit() {
-      // this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+      // $eMessage.success(`修改第 ${this.idx + 1} 行成功`);
       // this.$set(this.personInfoList, this.idx, this.editForm);
 
       this.$refs.editFormRef.validate(async (valid) => {
         if (!valid) return;
         // 发起修改用户信息的数据请求
         const { data: result } = await this.$http.put("auth/users/" + this.editForm.id, this.editForm);
-        if (!this.checkRequestResult(result, "更新用户失败")) {
+        if (!checkRequestResult(result, "更新用户失败")) {
           return;
         }
         // 关闭对话框
@@ -373,7 +374,7 @@ export default {
         // 重新获取用户列表
         this.getUserList();
         // 提示修改成功
-        this.$message.success("更新用户信息成功");
+        $eMessage.success("更新用户信息成功");
       });
     },
 
@@ -392,11 +393,11 @@ export default {
       const { data: result } = await this.$http.put(`auth/users/${userinfo.id}/state`, {
         confirmed: userinfo.confirmed ? 1 : 0,
       });
-      if (!this.checkRequestResult(result, "更新用户状态失败")) {
+      if (!checkRequestResult(result, "更新用户状态失败")) {
         userinfo.confirmed = !userinfo.confirmed;
         return;
       }
-      this.$message.success("更新用户状态成功");
+      $eMessage.success("更新用户状态成功");
     },
   },
   computed: {

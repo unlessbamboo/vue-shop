@@ -146,16 +146,16 @@ export default {
     submitForm() {
       this.$refs.register.validate(async (valid) => {
         if (!valid) {
-          this.$message.error("请输入正确的账号和密码");
+          $eMessage.error("请输入正确的账号和密码");
           return false;
         }
         this.registerForm.age = Number(this.registerForm.age);
 
         const { data: result } = await this.$http.post("auth/register", this.registerForm);
-        if (result.code !== 100000) return this.$message.error(result.msg || "注册失败");
+        if (result.code !== 100000) return $eMessage.error(result.msg || "注册失败");
 
         // 注册逻辑，可以在这里处理用户的注册信息
-        this.$message.success("注册成功");
+        $eMessage.success("注册成功");
         this.$router.push("/auth/login"); // 注册成功后跳转到登录页
         return true;
       });

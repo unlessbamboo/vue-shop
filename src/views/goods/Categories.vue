@@ -69,7 +69,7 @@
     </el-card>
 
     <!-- 添加分类对话框 -->
-    <el-dialog title="添加分类" :visible.sync="addCateDialogVisible" width="50%" @close="addCateDialogClosed">
+    <el-dialog title="添加分类" v-model="addCateDialogVisible" width="50%" @close="addCateDialogClosed">
       <!-- 添加分类的表单 -->
       <el-form :model="addCateForm" :rules="addCateFormRules" ref="addCateFormRef" label-width="100px">
         <el-form-item label="分类名称：" prop="name">
@@ -91,7 +91,7 @@
     </el-dialog>
 
     <!-- 修改分类名称的对话框 -->
-    <el-dialog title="修改分类" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
+    <el-dialog title="修改分类" v-model="editDialogVisible" width="50%" @close="editDialogClosed">
       <!-- 内容主体区域 -->
       <el-form :model="editCateForm" :rules="addCateFormRules" ref="editCateFormRef" label-width="100px">
         <el-form-item label="分类名称：" prop="name">
@@ -109,11 +109,12 @@
 
 <script>
 import SimpleApi from "@/api/simpleApi";
-import requestMixin from "@/mixins/requestMixin";
 import categoryMixin from "@/mixins/categoryMixin";
+import { ElMessageBox } from "element-plus";
+import { checkRequestResult } from "@/mixins/requestCommon";
 
 export default {
-  mixins: [requestMixin, categoryMixin],
+  mixins: [categoryMixin],
   data() {
     return {
       total: 0, // 总数据条数
@@ -173,7 +174,7 @@ export default {
       const { data: result } = await this.$http.get("goods/categories", {
         params: this.queryInfo,
       });
-      if (!this.checkRequestResult(result, "获取商品分类失败！")) {
+      if (!checkRequestResult(result, "获取商品分类失败！")) {
         return;
       }
       this.cateList = result.data;
@@ -202,7 +203,7 @@ export default {
       const { data: result } = await this.$http.get("goods/categories/simpleinfo", {
         params: { level: 2 },
       });
-      if (!this.checkRequestResult(result, "获取父级分类数据失败！")) {
+      if (!checkRequestResult(result, "获取父级分类数据失败！")) {
         return;
       }
       this.parentCateList = result.data.infos;
@@ -225,12 +226,12 @@ export default {
     // 点击确定按钮添加新的分类
     addCate() {
       this.$refs.addCateFormRef.validate(async (valid) => {
-        if (!valid) return this.$message.error("表单预校验失败！");
+        if (!valid) return $eMessage.error("表单预校验失败！");
         const { data: result } = await this.$http.post("goods/categories", this.addCateForm);
-        if (!this.checkRequestResult(result, "添加分类失败！")) {
+        if (!checkRequestResult(result, "添加分类失败！")) {
           return;
         }
-        this.$message.success("添加分类成功");
+        $eMessage.success("添加分类成功");
         // 刷新列表
         this.getCateList();
         // 隐藏对话框
@@ -248,7 +249,7 @@ export default {
     async showEditDialog(id) {
       this.editDialogVisible = true;
       const { data: result } = await this.$http.get(`goods/categories/${id}`);
-      if (!this.checkRequestResult(result, "查询分类数据失败！")) {
+      if (!checkRequestResult(result, "查询分类数据失败！")) {
         return;
       }
       console.log(result.data);
@@ -266,7 +267,7 @@ export default {
         const { data: result } = await this.$http.put(`goods/categories/${this.editCateForm.id}`, {
           name: this.editCateForm.name,
         });
-        if (!this.checkRequestResult(result, "更新分类名称失败！")) {
+        if (!checkRequestResult(result, "更新分类名称失败！")) {
           return;
         }
         // 关闭对话框
@@ -274,24 +275,24 @@ export default {
         // 重新获取用户列表
         this.getCateList();
         // 提示修改成功
-        this.$message.success("更新分类名称成功！");
+        $eMessage.success("更新分类名称成功！");
       });
     },
     async removeCateById(id) {
       // 弹框提示用户是否删除数据
-      const confirmResult = await this.$confirm("此操作将永久删除该分类，是否继续？", "提示", {
+      const confirmResult = await ElMessageBox.confirm("此操作将永久删除该分类，是否继续？", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       }).catch((error) => error);
       if (confirmResult !== "confirm") {
-        return this.$message.info("已经取消删除");
+        return $eMessage.info("已经取消删除");
       }
       const { data: result } = await this.$http.delete("goods/categories/" + id);
-      if (!this.checkRequestResult(result, "删除分类失败")) {
+      if (!checkRequestResult(result, "删除分类失败")) {
         return;
       }
-      this.$message.success("删除分类成功");
+      $eMessage.success("删除分类成功");
       this.getCateList();
     },
   },

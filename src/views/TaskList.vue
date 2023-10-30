@@ -128,7 +128,7 @@ export default {
       var [newToId, newIndex] = [event.to.id, event.newIndex];
       var item = this.draginfo[newToId][newIndex];
       item.dragType = this.getTypeByCategory(newToId);
-      this.$message.success(`ID()从 ${event.from.id} 移动到 ${event.to.id} `);
+      $eMessage.success(`ID()从 ${event.from.id} 移动到 ${event.to.id} `);
     },
     /*
     根据category获取类型

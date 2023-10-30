@@ -14,7 +14,7 @@
             </div>
             <div class="user-info-list">
               上次登录时间：
-              <span>{{ loginOther.login_time | dateFormatConvert }}</span>
+              <span>{{ $filters.dateFormatConvert(loginOther.login_time) }}</span>
             </div>
             <div class="user-info-list">
               上次登录地点：
@@ -38,9 +38,12 @@
           注意, el-card本身就要求这样使用slot, 组件内部会自动将这段slot代码作为header.
         -->
           <el-card shadow="hover" style="height: 252px" v-if="statisticsInfo.languages">
-            <div slot="header" class="clearfix">
-              <span>语言详情</span>
-            </div>
+            <template v-slot:header>
+              <div class="clearfix">
+                <span>语言详情</span>
+              </div>
+            </template>
+
             <div class="custom-card-content">
               Vue
               <el-progress :percentage="statisticsInfo.languages.vue || 0" color="#42b983"></el-progress>
@@ -92,20 +95,22 @@
             </el-col>
           </el-row>
           <el-card shadow="hover" style="height: 403px" class="todo-card-container">
-            <div slot="header" class="clearfix">
-              <span>待办事项</span>
-              <el-button style="float: right; padding: 3px 0" type="text" @click="handleTodoAdd">添加</el-button>
-            </div>
+            <template v-slot:header>
+              <div class="clearfix">
+                <span>待办事项</span>
+                <el-button style="float: right; padding: 3px 0" type="text" @click="handleTodoAdd">添加</el-button>
+              </div>
+            </template>
             <el-table :show-header="false" :data="todoList" style="width: 100%">
               <el-table-column width="40">
-                <template slot-scope="scope">
+                <template v-slot:default="scope">
                   <el-checkbox
                     :value="scope.row.status == 3"
                     @change="handleTodoCheckboxChange(scope.row)"></el-checkbox>
                 </template>
               </el-table-column>
               <el-table-column>
-                <template slot-scope="scope">
+                <template v-slot:default="scope">
                   <!-- 这里使用方法就是为了调试, 实际问题: 类型不一致, 变为字符串了, 这里提供了一种debug方法 -->
                   <div class="todo-item" :class="{ 'todo-item-del': isTodoItemDel(scope.row.status) }">
                     {{ scope.row.title }}
@@ -113,7 +118,7 @@
                 </template>
               </el-table-column>
               <el-table-column width="100" align="center">
-                <template slot-scope="scope">
+                <template v-slot:default="scope">
                   <el-button
                     type="primary"
                     icon="el-icon-edit"
@@ -179,7 +184,7 @@
     </div>
 
     <!-- 2. 编辑弹出框, 注意el-form-item中的prop实际上和rules中的key对应 -->
-    <el-dialog title="编辑" :visible.sync="todoEditDialogVisible" width="30%">
+    <el-dialog title="编辑" v-model="todoEditDialogVisible" width="30%">
       <el-form ref="todoEditFormRef" :model="todoEditForm" label-width="70px">
         <el-form-item label="标题" prop="title">
           <el-input v-model="todoEditForm.title"></el-input>
@@ -191,14 +196,16 @@
           <el-input v-model="todoEditForm.priority"></el-input>
         </el-form-item>
       </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="todoEditDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="saveTodoEdit">确 定</el-button>
-      </span>
+      <template v-slot:footer>
+        <span class="dialog-footer">
+          <el-button @click="todoEditDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="saveTodoEdit">确 定</el-button>
+        </span>
+      </template>
     </el-dialog>
 
     <!-- 3. 添加弹出框, 注意el-form-item中的prop实际上和rules中的key对应 -->
-    <el-dialog title="添加" :visible.sync="todoAddDialogVisible" width="30%">
+    <el-dialog title="添加" v-model="todoAddDialogVisible" width="30%">
       <el-form ref="todoAddFormRef" :model="todoAddForm" label-width="70px">
         <el-form-item label="标题" prop="title">
           <el-input v-model="todoAddForm.title"></el-input>
@@ -210,17 +217,21 @@
           <el-input v-model="todoAddForm.priority"></el-input>
         </el-form-item>
       </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="todoAddDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="saveTodoAdd">确 定</el-button>
-      </span>
+      <template v-slot:footer>
+        <span class="dialog-footer">
+          <el-button @click="todoAddDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="saveTodoAdd">确 定</el-button>
+        </span>
+      </template>
     </el-dialog>
   </div>
 </template>
 
-<script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, onBeforeMount, onActivated, onDeactivated, watch } from "vue";
+<script setup name="dashboard">
+import { ref, onMounted, onBeforeUnmount, onBeforeMount, onActivated, onDeactivated, watch } from "vue";
+import { ElMessageBox} from "element-plus";
 import Schart from "vue-schart";
+import "@/utils/chart";
 
 import SimpleApi from "@/api/simpleApi";
 import Axiosapi from "@/utils/request";
@@ -245,11 +256,11 @@ const todoPageSize = ref(5);
 const todoTotal = ref(0);
 const todoEditDialogVisible = ref(false);
 const todoHandleId = ref(0);
-const todoEditForm = reactive({});
+const todoEditForm = ref({});
 const todoAddDialogVisible = ref(false);
-const todoAddForm = reactive({ title: "", desc: "", priority: 3 });
-const salesData = reactive({ options: {}, options2: {}, options3: {}, options4: {} });
-const statisticsInfo = reactive({});
+const todoAddForm = ref({ title: "", desc: "", priority: 3 });
+const salesData = ref({ options: {}, options2: {}, options3: {}, options4: {} });
+const statisticsInfo = ref({});
 
 /*
 Computed: 计算属性
@@ -331,53 +342,53 @@ function getTodoListInfos() {
       if (!checkRequestResult(_rspInfo, "获取todolist列表异常")) {
         return;
       }
-      this.todoList = _rspInfo.data;
-      this.todoPage = _rspInfo.pager.page;
-      this.todoPageSize = _rspInfo.pager.pageSize;
-      this.todoTotal = _rspInfo.pager.total;
+      todoList.value = _rspInfo.data;
+      todoPage.value = _rspInfo.pager.page;
+      todoPageSize.value = _rspInfo.pager.pageSize;
+      todoTotal.value = _rspInfo.pager.total;
     })
     .catch((error) => {
       console.log(error);
     });
 }
-handleTodoEdit(todoId, row) {
-  this.todoHandleId = todoId;
+function handleTodoEdit(todoId, row) {
+  todoHandleId.value = todoId;
   const { id, title, desc, priority } = row;
-  this.todoEditForm = { id, title, desc, priority };
-  this.todoEditDialogVisible = true;
+  todoEditForm.value = { id, title, desc, priority };
+  todoEditDialogVisible.value = true;
 }
-async handleTodoDelete(todoId, row) {
+async function handleTodoDelete(todoId, row) {
   try {
-    await this.$confirm("确定要标记为删除吗？", "提示", {
+    await ElMessageBox.confirm("确定要标记为删除吗？", "提示", {
       type: "warning",
     });
     const { data: result } = await SimpleApi.UpdateTodoOneInfos(todoId, {
       status: 4,
     });
-    if (!this.checkRequestResult(result, "更新todo信息失败")) {
+    if (!checkRequestResult(result, "更新todo信息失败")) {
       return;
     }
-    this.getTodoListInfos();
+    getTodoListInfos();
   } catch (error) {
     console.error("删除操作取消或出错:", error);
   }
 }
-async saveTodoEdit() {
+async function saveTodoEdit() {
   // 发起修改用户信息的数据请求
-  const { data: result } = await SimpleApi.UpdateTodoOneInfos(this.todoEditForm.id, this.todoEditForm);
-  if (!this.checkRequestResult(result, "更新todo信息失败")) {
+  const { data: result } = await SimpleApi.UpdateTodoOneInfos(todoEditForm.value.id, todoEditForm);
+  if (!checkRequestResult(result, "更新todo信息失败")) {
     return;
   }
-  this.todoEditDialogVisible = false;
-  this.getTodoListInfos();
-  this.$message.success("更新todo信息成功");
+  todoEditDialogVisible.value = false;
+  getTodoListInfos();
+  $eMessage.success("更新todo信息成功");
 }
 // 在勾选或取消勾选待办实现的时候触发回调
-async handleTodoCheckboxChange(row) {
+async function handleTodoCheckboxChange(row) {
   status = row.status == 3 ? 1 : 3;
 
   const { data: result } = await SimpleApi.UpdateTodoOneInfos(row.id, { status: parseInt(status) });
-  if (!this.checkRequestResult(result, `更新待办事项(${row.title})信息失败`)) {
+  if (!checkRequestResult(result, `更新待办事项(${row.title})信息失败`)) {
     return;
   }
 
@@ -385,38 +396,38 @@ async handleTodoCheckboxChange(row) {
   this.$set(row, "status", status);
 }
 // 添加新的代办事项
-handleTodoAdd() {
-  this.todoAddForm = { title: "", desc: "", priority: 3 };
-  this.todoAddDialogVisible = true;
+function handleTodoAdd() {
+  todoAddForm.value = { title: "", desc: "", priority: 3 };
+  todoAddDialogVisible.value = true;
 }
-async saveTodoAdd() {
+async function saveTodoAdd() {
   // 发起修改用户信息的数据请求
-  const { data: result } = await this.$http.post("other/todos", this.todoAddForm);
-  if (!this.checkRequestResult(result, "添加新待办事项失败")) {
+  const { data: result } = await $http.post("other/todos", todoAddForm.value);
+  if (!checkRequestResult(result, "添加新待办事项失败")) {
     return;
   }
-  this.todoAddDialogVisible = false;
-  this.getTodoListInfos();
-  this.$message.success("更新todo信息成功");
+  todoAddDialogVisible.value = false;
+  getTodoListInfos();
+  $eMessage.success("更新todo信息成功");
 }
 // 批量更新待办事项状态
-async updateTodoStatus(status) {
-  const { data: result } = await this.$http.put(`other/todos/status/${status}`);
-  if (!this.checkRequestResult(result, "添加新待办事项失败")) {
+async function updateTodoStatus(status) {
+  const { data: result } = await $http.put(`other/todos/status/${status}`);
+  if (!checkRequestResult(result, "添加新待办事项失败")) {
     return;
   }
 }
-handleTodoMulComplete() {
-  this.updateTodoStatus(3);
-  this.getTodoListInfos();
+function handleTodoMulComplete() {
+  updateTodoStatus(3);
+  getTodoListInfos();
 }
-handleTodoMulDelete() {
-  this.updateTodoStatus(4);
-  this.getTodoListInfos();
+function handleTodoMulDelete() {
+  updateTodoStatus(4);
+  getTodoListInfos();
 }
 
 // 获取最近一周各品类销售数据
-getRecentSalesData() {
+function getRecentSalesData() {
   // 获取最近一周的日期范围，可以使用 JavaScript Date 对象进行计算
   const today = new Date();
   const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -429,10 +440,10 @@ getRecentSalesData() {
   SimpleApi.fetchSalesData({ startDate, endDate })
     .then((result) => {
       var _rspInfo = result.data;
-      if (!this.checkRequestResult(_rspInfo, "获取最近一周各品类销售数据异常")) {
+      if (!checkRequestResult(_rspInfo, "获取最近一周各品类销售数据异常")) {
         return;
       }
-      this.salesData = _rspInfo.data;
+      salesData.value = _rspInfo.data;
     })
     .catch((error) => {
       console.log(error);
@@ -440,87 +451,19 @@ getRecentSalesData() {
 }
 
 // 获取网站的统计信息
-getStatisticsInfo() {
+function getStatisticsInfo() {
   SimpleApi.fetchStatisticsData()
     .then((result) => {
       var _rspInfo = result.data;
-      if (!this.checkRequestResult(_rspInfo, "获取网站的统计信息异常")) {
+      if (!checkRequestResult(_rspInfo, "获取网站的统计信息异常")) {
         return;
       }
-      this.statisticsInfo = _rspInfo.data;
+      statisticsInfo.value = _rspInfo.data;
     })
     .catch((error) => {
       console.log(error);
     });
 },
-
-export default {
-  name: "dashboard",
-  mixins: [requestMixin],
-  data() {
-    return {
-      dynamicBaseURL: Axiosapi.dynamicURL,
-      loginName: localStorage.getItem("ms_username"),
-      loginOther: JSON.parse(localStorage.getItem("ms_other")),
-
-      // 待办事项相关变量
-      todoList: [],
-      todoPage: 1,
-      todoPageSize: 5,
-      todoTotal: 0,
-      todoEditDialogVisible: false, // 对话框
-      todoHandleId: 0,
-      todoEditForm: {}, // 表单
-
-      todoAddDialogVisible: false,
-      todoAddForm: { title: "", desc: "", priority: 3 },
-
-      salesData: { options: {}, options2: {}, options3: {}, options4: {} }, // 销售信息
-      statisticsInfo: {
-        // 统计信息, 确保子对象不为空, 否则开始就会报错
-      },
-    };
-  },
-  components: {
-    Schart,
-  },
-  computed: {
-    role() {
-      return this.loginName === "admin" ? "超级管理员" : "普通用户";
-    },
-    loginLocation() {
-      if (!this.loginOther.login_location) {
-        return "-";
-      }
-
-      return this.loginOther.login_location.city + " / " + this.loginOther.login_location.country;
-    },
-  },
-  // 实例创建完成后被立即调用, 此时还没开始，$el 属性目前不可见
-  created() {
-    this.getAllInfo();
-    // 监听事件总线的某一个值
-    EventBus.$on("dynamicURLChange", this.handleDynamicURLChange);
-  },
-  beforeDestroy() {
-    // 取消监听
-    EventBus.$off("dynamicURLChange", this.handleDynamicURLChange);
-  },
-  // 当点击"系统首页", 加载dashboard页面的时候, 该函数被调用
-  activated() {
-    this.getAllInfo();
-
-    this.refreshInterval = setInterval(() => {
-      this.getAllInfo();
-    }, 60000);
-  },
-  // 当离开dashboard页面的时候被调用
-  deactivated() {
-    clearInterval(this.refreshInterval);
-  },
-  methods: {
-  },
-};
 </script>
 
 <style scoped>

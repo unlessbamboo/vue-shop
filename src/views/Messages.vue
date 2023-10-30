@@ -137,7 +137,7 @@ export default {
       const { data: result } = await this.$http.put(`messages/updateone/${messageId}`, {
         new_status: messageStatus,
       });
-      if (!this.checkRequestResult(result, "更新系统消息状态失败!")) {
+      if (!checkRequestResult(result, "更新系统消息状态失败!")) {
         return;
       }
     },
@@ -173,7 +173,7 @@ export default {
         current_status: oldStatus,
         new_status: newStatus,
       });
-      if (!this.checkRequestResult(result, "更新系统消息状态失败!")) {
+      if (!checkRequestResult(result, "更新系统消息状态失败!")) {
         return;
       }
 
@@ -226,7 +226,7 @@ export default {
     // 获取消息简要统计信息
     async getMessageStatistics() {
       const { data: result } = await SimpleApi.fetchMessageStatistics();
-      if (!this.checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
+      if (!checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
         return;
       }
       this.messageStatistics = result.data;
@@ -240,7 +240,7 @@ export default {
           status: messageStatus,
         },
       });
-      if (!this.checkRequestResult(result, "获取未读系统消息列表失败!")) {
+      if (!checkRequestResult(result, "获取未读系统消息列表失败!")) {
         return null;
       }
       this.total = result.pager.total;

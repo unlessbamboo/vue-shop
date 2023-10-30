@@ -17,7 +17,7 @@
       <br />
       <el-button type="primary" @click="visible = true">点我弹框</el-button>
     </div>
-    <el-dialog v-dialogDrag title="拖拽弹框" center :visible.sync="visible" width="30%">
+    <el-dialog v-dialogDrag title="拖拽弹框" center v-model="visible" width="30%">
       我是一个可以拖拽的对话框！
       <span slot="footer" class="dialog-footer">
         <el-button @click="visible = false">取 消</el-button>
