@@ -159,7 +159,14 @@
         <!-- a. 柱状图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <schart ref="barRef" class="schart" canvasId="bar" :options="salesData.options"></schart>
+            <v-chart
+              :option="salesData.options"
+              theme="ovilia-green"
+              ref="barRef"
+              class="schart"
+              autoresize
+              :loading="loading"
+              :loadingOptions="loadingOptions" />
           </el-card>
         </el-col>
         <!-- 折线图 -->
@@ -229,15 +236,18 @@
 
 <script setup name="dashboard">
 import { ref, onMounted, onBeforeUnmount, onBeforeMount, onActivated, onDeactivated, watch } from "vue";
-import { ElMessageBox} from "element-plus";
-import Schart from "vue-schart";
+import { ElMessageBox } from "element-plus";
 import "@/utils/chart";
 
 import SimpleApi from "@/api/simpleApi";
 import Axiosapi from "@/utils/request";
-import {checkRequestResult} from "@/mixins/requestCommon";
+import { checkRequestResult } from "@/mixins/requestCommon";
 import CommonDateHandler from "@/utils/date";
-import EventBus from "@/store/bus";
+
+// 全局变量
+const { proxy } = getCurrentInstance();
+const $mitt = proxy.$mitt;
+
 /*
 页面: 管理后台控制台首页
  */
@@ -278,7 +288,7 @@ Lifecycle: 事件方法和生命周期
 onBeforeMount(() => {
   getAllInfo();
   // 监听事件总线的某一个值
-  EventBus.$on("dynamicURLChange", handleDynamicURLChange);
+  $mitt.on("dynamicURLChange", handleDynamicURLChange);
 });
 onBeforeUnmount(() => {
   // 取消监听
@@ -317,7 +327,7 @@ function getAllInfo() {
 function handleBus(msg) {
   setTimeout(() => {
     renderChart();
-  } 200);
+  }, 200);
 }
 // 用于渲染图表的方法: 重新渲染柱状图, 重新渲染折线图
 function renderChart() {
@@ -463,7 +473,7 @@ function getStatisticsInfo() {
     .catch((error) => {
       console.log(error);
     });
-},
+}
 </script>
 
 <style scoped>
@@ -598,7 +608,7 @@ function getStatisticsInfo() {
 }
 
 .schart {
-  width: 100%;
+  /* width: 100%; */
   height: 300px;
 }
 </style>

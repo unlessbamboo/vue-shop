@@ -21,57 +21,40 @@
   </div>
 </template>
 
-<script>
-import vHead from "@/components/Header.vue";
-import vSidebar from "@/components/Sidebar.vue";
-import vTags from "@/components/Tags.vue";
-import bus from "@/store/bus";
+<script setup name="home">
+import { ref, computed, watch, onBeforeMount, getCurrentInstance } from "vue";
+import { useStore } from "vuex";
+import vHead from "@/components/Header.vue"; // 自动变为v-head
+import vSidebar from "@/components/Sidebar.vue"; // 自动变为v-sidebar
+import vTags from "@/components/Tags.vue"; // 自动转为v-tags
 
-export default {
-  data() {
-    return {
-      // tagsList: [],
-      collapse: false,
-    };
-  },
-  components: {
-    vHead, // 自动变为v-head
-    vSidebar, // 自动变为v-sidebar
-    vTags, // 自动转为v-tags
-  },
-  created() {
-    // 侧边栏是否折叠, 若collapse为true, 根据样式进行左侧偏移:65px
-    bus.$on("collapse-content", (msg) => {
-      this.collapse = msg;
-    });
+// 全局变量
+const { proxy } = getCurrentInstance();
+const $mitt = proxy.$mitt;
 
-    // 缓存组件, 提高组件的加载速度, 注意, 这里和tags中的展示无关系
-    /* bus.$on("tags-flush", (msg) => {
-      let arr = [];
-      for (let i = 0, len = msg.length; i < len; i++) {
-        msg[i].name && arr.push(msg[i].name);
-      }
-      this.tagsList = arr;
-    }); */
+const store = useStore();
+const collapse = ref(false);
+const tagsList = computed({
+  get() {
+    return store.state.tagsList;
   },
-  computed: {
-    tagsList: {
-      get() {
-        return this.$store.state.tagsList;
-      },
-      set(newValue) {
-        return newValue;
-      },
-    },
+  set(newValue) {
+    return newValue;
   },
-  watch: {
-    tagsList(msg) {
-      let arr = [];
-      for (let i = 0, len = msg.length; i < len; i++) {
-        msg[i].name && arr.push(msg[i].name);
-      }
-      this.tagsList = arr;
-    },
-  },
-};
+});
+
+onBeforeMount(() => {
+  // 侧边栏是否折叠, 若collapse为true, 根据样式进行左侧偏移:65px
+  $mitt.on("collapse-content", (msg) => {
+    collapse.value = msg;
+  });
+});
+
+watch(tagsList, (msg) => {
+  let arr = [];
+  for (let i = 0, len = msg.length; i < len; i++) {
+    msg[i].name && arr.push(msg[i].name);
+  }
+  tagsList.value = arr;
+});
 </script>

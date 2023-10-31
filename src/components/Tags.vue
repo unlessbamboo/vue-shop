@@ -20,116 +20,122 @@
           -->
           <i class="el-icon-arrow-down el-icon--right"></i>
         </el-button>
-        <el-dropdown-menu size="small" slot="dropdown">
-          <el-dropdown-item command="other">关闭其他</el-dropdown-item>
-          <el-dropdown-item command="all">关闭所有</el-dropdown-item>
-        </el-dropdown-menu>
+
+        <template #dropdown>
+          <el-dropdown-menu size="small">
+            <el-dropdown-item command="other">关闭其他</el-dropdown-item>
+            <el-dropdown-item command="all">关闭所有</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
       </el-dropdown>
     </div>
   </div>
 </template>
 
-<script>
-import bus from "@/store/bus";
-export default {
-  data() {
-    return {
-      tagsList: [],
-    };
-  },
-  methods: {
-    isActive(path) {
-      return path === this.$route.fullPath;
-    },
-    // 关闭单个标签
-    closeTags(index) {
-      const delItem = this.tagsList.splice(index, 1)[0];
-      const item = this.tagsList[index] ? this.tagsList[index] : this.tagsList[index - 1];
-      if (item) {
-        delItem.path === this.$route.fullPath && this.$router.push(item.path);
-      } else {
-        this.$router.push("/");
-      }
-    },
-    // 关闭全部标签
-    closeAll() {
-      this.tagsList = [];
-      this.$router.push("/");
-    },
-    // 关闭其他标签
-    closeOther() {
-      const curItem = this.tagsList.filter((item) => {
-        return item.path === this.$route.fullPath;
-      });
-      this.tagsList = curItem;
-    },
+<script setup name="tags">
+import { ref, computed, onMounted, getCurrentInstance } from "vue";
+import { useStore } from "vuex";
+import { useRouter } from "vue-router";
+import SimpleApi from "@/api/simpleApi";
+import Axiosapi from "@/utils/request";
+import { checkRequestResult } from "@/mixins/requestCommon";
 
-    // 设置标签, 每次监视器发现路由变化的时候否会调用该函数
-    setTags(route) {
-      // a. 设置展示数组, tagsList会自动在模板中被遍历并展示
-      const isExist = this.tagsList.some((item) => {
-        return item.path === route.fullPath;
-      });
+// 全局变量
+const { proxy } = getCurrentInstance();
+const $mitt = proxy.$mitt;
+const router = useRouter();
+const store = useStore();
+const tagsList = ref([]);
 
-      if (!isExist) {
-        if (this.tagsList.length >= 8) {
-          this.tagsList.shift();
-        }
-        this.tagsList.push({
-          title: route.meta.title,
-          path: route.fullPath,
-          name: route.matched[1].components.default.name,
-        });
-      }
+function isActive(path) {
+  return path === router.currentRoute.value.fullPath;
+}
+// 关闭单个标签
+function closeTags(index) {
+  const delItem = tagsList.value.splice(index, 1)[0];
+  const item = tagsList.value[index] ? tagsList.value[index] : tagsList.value[index - 1];
+  if (item) {
+    delItem.path === router.currentRoute.value.fullPath && router.push(item.path);
+  } else {
+    router.push("/");
+  }
+}
+// 关闭全部标签
+function closeAll() {
+  tagsList.value = [];
+  router.push("/");
+}
+// 关闭其他标签
+function closeOther() {
+  const curItem = tagsList.value.filter((item) => {
+    return item.path === router.currentRoute.value.fullPath;
+  });
+  tagsList.value = curItem;
+}
 
-      // b. 见home.vue, 主要用于组件的缓存, 与展示无关
-      // bus.$emit("tags-flush", this.tagsList);
-      this.$store.dispatch("updateTagsList", this.tagsList);
-    },
+// 设置标签, 每次监视器发现路由变化的时候否会调用该函数
+function setTags(myRoute) {
+  // a. 设置展示数组, tagsList会自动在模板中被遍历并展示
+  const isExist = tagsList.value.some((item) => {
+    return item.path === myRoute.fullPath;
+  });
 
-    handleTags(command) {
-      command === "other" ? this.closeOther() : this.closeAll();
-    },
-  },
-  computed: {
-    showTags() {
-      return this.tagsList.length > 0;
-    },
-  },
-  watch: {
-    /*
-    功能: 一个监视器函数，用于监听路由对象的变化。当路由发生变化时，会触发该监视器函数，
-        并传入新的路由对象 newValue 和旧的路由对象 oldValue. 即任何路由变化都会自动被这里捕获
-        然后将新的路由选项卡添加到taglists中.
-    另外:
-        $route 是 Vue Router 提供的路由对象，在 Vue 组件中可以通过 $route 访问当前路由的信息
-        注意, 监视器和计算属性的区别.
-    */
-    $route(newValue, oldValue) {
-      this.setTags(newValue);
-    },
-  },
-  created() {
-    this.setTags(this.$route);
-    // 监听关闭当前页面的标签页
-    bus.$on("close_current_tags", () => {
-      for (let i = 0, len = this.tagsList.length; i < len; i++) {
-        const item = this.tagsList[i];
-        if (item.path === this.$route.fullPath) {
-          if (i < len - 1) {
-            this.$router.push(this.tagsList[i + 1].path);
-          } else if (i > 0) {
-            this.$router.push(this.tagsList[i - 1].path);
-          } else {
-            this.$router.push("/");
-          }
-          this.tagsList.splice(i, 1);
-          break;
-        }
-      }
+  if (!isExist) {
+    if (tagsList.value.length >= 8) {
+      tagsList.value.shift();
+    }
+    tagsList.value.push({
+      title: myRoute.meta.title,
+      path: myRoute.fullPath,
+      name: myRoute.matched[1].components.default.name,
     });
-  },
-};
+  }
+
+  // b. 见home.vue, 主要用于组件的缓存, 与展示无关
+  // $mitt.emit("tags-flush", this.tagsList);
+  store.dispatch("updateTagsList", tagsList.value);
+}
+
+function handleTags(command) {
+  command === "other" ? closeOther() : closeAll();
+}
+
+// =================计算属性和生命周期=================
+const showTags = computed(() => {
+  return this.tagsList.length > 0;
+});
+/*
+功能: 一个监视器函数，用于监听路由对象的变化。当路由发生变化时，会触发该监视器函数，
+    并传入新的路由对象 newValue 和旧的路由对象 oldValue. 即任何路由变化都会自动被这里捕获
+    然后将新的路由选项卡添加到taglists中.
+另外:
+    $route 是 Vue Router 提供的路由对象，在 Vue 组件中可以通过 $route 访问当前路由的信息
+    注意, 监视器和计算属性的区别.
+*/
+watch(route, (newValue, oldValue) => {
+  setTags(newValue);
+});
+
+onMounted(() => {
+  setTags(route);
+
+  $mitt.on("close_current_tags", () => {
+    for (let i = 0, len = tagsList.value.length; i < len; i++) {
+      const item = tagsList.value[i];
+      if (item.path === route.fullPath) {
+        if (i < len - 1) {
+          router.push(tagsList.value[i + 1].path);
+        } else if (i > 0) {
+          router.push(tagsList.value[i - 1].path);
+        } else {
+          router.push("/");
+        }
+        tagsList.value.splice(i, 1);
+        break;
+      }
+    }
+  });
+});
 </script>
 
 <style>

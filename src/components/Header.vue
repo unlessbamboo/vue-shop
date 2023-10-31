@@ -21,11 +21,13 @@
           <span class="el-dropdown-link">
             <i class="el-icon-orange"></i>
           </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="flaskapi">切换到FlaskApi</el-dropdown-item>
-            <el-dropdown-item command="djangoapi">切换到DjangoApi</el-dropdown-item>
-            <el-dropdown-item command="ginapi">切换到GinApi</el-dropdown-item>
-          </el-dropdown-menu>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="flaskapi">切换到FlaskApi</el-dropdown-item>
+              <el-dropdown-item command="djangoapi">切换到DjangoApi</el-dropdown-item>
+              <el-dropdown-item command="ginapi">切换到GinApi</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
         </el-dropdown>
 
         <!-- 全屏显示 -->
@@ -62,143 +64,141 @@
             {{ username }}
             <i class="el-icon-caret-bottom"></i>
           </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="person">个人中心</el-dropdown-item>
-            <a href="https://github.com/unlessbamboo/vue-shop" target="_blank">
-              <el-dropdown-item divided>项目仓库</el-dropdown-item>
-            </a>
-            <a :href="flaskSwagger" target="_blank">
-              <el-dropdown-item divided>flask swagger</el-dropdown-item>
-            </a>
-            <a :href="djangoSwagger" target="_blank">
-              <el-dropdown-item divided>django swagger</el-dropdown-item>
-            </a>
-            <a :href="ginSwagger" target="_blank">
-              <el-dropdown-item divided>gin swagger</el-dropdown-item>
-            </a>
-            <el-dropdown-item divided command="loginout">退出登录</el-dropdown-item>
-          </el-dropdown-menu>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="person">个人中心</el-dropdown-item>
+              <a href="https://github.com/unlessbamboo/vue-shop" target="_blank">
+                <el-dropdown-item divided>项目仓库</el-dropdown-item>
+              </a>
+              <a :href="flaskSwagger" target="_blank">
+                <el-dropdown-item divided>flask swagger</el-dropdown-item>
+              </a>
+              <a :href="djangoSwagger" target="_blank">
+                <el-dropdown-item divided>django swagger</el-dropdown-item>
+              </a>
+              <a :href="ginSwagger" target="_blank">
+                <el-dropdown-item divided>gin swagger</el-dropdown-item>
+              </a>
+              <el-dropdown-item divided command="loginout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
         </el-dropdown>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup name="header">
+import { ref, computed, onMounted, getCurrentInstance } from "vue";
+import { useRouter } from "vue-router";
 import SimpleApi from "@/api/simpleApi";
 import Axiosapi from "@/utils/request";
-import bus from "@/store/bus";
-import requestMixin from "@/mixins/requestMixin";
+import { checkRequestResult } from "@/mixins/requestCommon";
 
-export default {
-  mixins: [requestMixin],
-  data() {
-    return {
-      flaskSwagger: import.meta.env.VITE_APP_FLASK_BACKEND_HOST + "/api/v1/swagger",
-      djangoSwagger: import.meta.env.VITE_APP_DJANGO_BACKEND_HOST + "/api/v1/swagger/",
-      ginSwagger: import.meta.env.VITE_APP_GIN_BACKEND_HOST + "/api/v1/swagger/index.html",
-      collapse: true, // 默认打开侧边栏
-      fullscreen: false,
-      name: "linxin",
-      message: 0,
-    };
-  },
-  computed: {
-    username() {
-      let username = localStorage.getItem("ms_username");
-      return username ? username : this.name;
-    },
-  },
-  methods: {
-    // 用户名下拉菜单选择事件
-    handleCommand(command) {
-      if (command == "loginout") {
-        localStorage.removeItem("ms_username");
-        this.$router.push("/auth/login");
-      } else if (command == "person") {
-        this.$router.push("/user/person");
-        // this.$route.path.replace("/user/person", "");
-      }
-    },
+// 全局变量
+const { proxy } = getCurrentInstance();
+const $mitt = proxy.$mitt;
+const router = useRouter();
 
-    // 获取消息简要统计信息
-    async getMessageStatistics() {
-      const { data: result } = await SimpleApi.fetchMessageStatistics();
-      if (!checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
-        return;
-      }
-      this.message = result.data.unread;
-    },
+const flaskSwagger = import.meta.env.VITE_APP_FLASK_BACKEND_HOST + "/api/v1/swagger";
+const djangoSwagger = import.meta.env.VITE_APP_DJANGO_BACKEND_HOST + "/api/v1/swagger/";
+const ginSwagger = import.meta.env.VITE_APP_GIN_BACKEND_HOST + "/api/v1/swagger/index.html";
+const collapse = ref(true);
+const fullscreen = ref(false);
+const name = "linxin";
+const message = ref(0);
 
-    // 侧边栏折叠, 通过全局事件总线来进行组件间的通信, 整体的消息传递流程: header -> sidebar -> home
-    collapseChage() {
-      this.collapse = !this.collapse;
-      bus.$emit("collapse", this.collapse);
-    },
-    // 跳转到个人主页
-    handleGoHome() {
-      var homePage = import.meta.env.VITE_APP_MYHOME_HOST;
-      window.location.href = homePage;
-    },
+const username = computed(() => {
+  let username = localStorage.getItem("ms_username");
+  return username ? username : name;
+});
 
-    // 切换后端服务
-    handleChangeHost(cmd) {
-      var oldBaseHost = Axiosapi.dynamicURL;
-      var newBaseHost = "";
+// 用户名下拉菜单选择事件
+function handleCommand(command) {
+  if (command === "loginout") {
+    localStorage.removeItem("ms_username");
+    router.push("/auth/login");
+  } else if (command === "person") {
+    router.push("/user/person");
+  }
+}
 
-      if (cmd == "flaskapi") {
-        newBaseHost = import.meta.env.VITE_APP_FLASK_BACKEND_HOST;
-      } else if (cmd == "djangoapi") {
-        newBaseHost = import.meta.env.VITE_APP_DJANGO_BACKEND_HOST;
-      } else {
-        newBaseHost = import.meta.env.VITE_APP_GIN_BACKEND_HOST;
-      }
+// 获取消息简要统计信息
+async function getMessageStatistics() {
+  const { data: result } = await SimpleApi.fetchMessageStatistics();
+  if (!checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
+    message.value = result.data.unread;
+  }
+}
 
-      if (newBaseHost == oldBaseHost) {
-        return;
-      }
+// 侧边栏折叠, 通过全局事件总线来进行组件间的通信, 整体的消息传递流程: header -> sidebar -> home
+function collapseChage() {
+  collapse.value = !collapse.value;
+  $mitt.emit("collapse", collapse.value);
+}
 
-      window.sessionStorage.setItem("shopDynamicHost", newBaseHost);
-      bus.$emit("dynamicURLChange", newBaseHost); // 使用事件总线进行通知
-      $eMessage.success("成功切换后端服务为:" + newBaseHost);
-    },
+// 跳转到个人主页
+function handleGoHome() {
+  var homePage = import.meta.env.VITE_APP_MYHOME_HOST;
+  window.location.href = homePage;
+}
 
-    // 全屏事件, 下面的代码是通用方式(chatgpt也是这样写的)
-    handleFullScreen() {
-      let element = document.documentElement;
-      if (this.fullscreen) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitCancelFullScreen) {
-          document.webkitCancelFullScreen();
-        } else if (document.mozCancelFullScreen) {
-          document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
-        }
-      } else {
-        if (element.requestFullscreen) {
-          element.requestFullscreen();
-        } else if (element.webkitRequestFullScreen) {
-          element.webkitRequestFullScreen();
-        } else if (element.mozRequestFullScreen) {
-          element.mozRequestFullScreen();
-        } else if (element.msRequestFullscreen) {
-          // IE11
-          element.msRequestFullscreen();
-        }
-      }
-      this.fullscreen = !this.fullscreen;
-    },
-  },
-  mounted() {
-    if (document.body.clientWidth < 1500) {
-      this.collapseChage();
+// 切换后端服务
+function handleChangeHost(cmd) {
+  var oldBaseHost = Axiosapi.dynamicURL;
+  var newBaseHost = "";
+
+  if (cmd == "flaskapi") {
+    newBaseHost = import.meta.env.VITE_APP_FLASK_BACKEND_HOST;
+  } else if (cmd == "djangoapi") {
+    newBaseHost = import.meta.env.VITE_APP_DJANGO_BACKEND_HOST;
+  } else {
+    newBaseHost = import.meta.env.VITE_APP_GIN_BACKEND_HOST;
+  }
+
+  if (newBaseHost == oldBaseHost) {
+    return;
+  }
+
+  window.sessionStorage.setItem("shopDynamicHost", newBaseHost);
+  $mitt.emit("dynamicURLChange", newBaseHost); // 使用事件总线进行通知
+  $eMessage.success("成功切换后端服务为:" + newBaseHost);
+}
+
+// 全屏事件, 下面的代码是通用方式(chatgpt也是这样写的)
+function handleFullScreen() {
+  let element = document.documentElement;
+  if (this.fullscreen) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitCancelFullScreen) {
+      document.webkitCancelFullScreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
     }
+  } else {
+    if (element.requestFullscreen) {
+      element.requestFullscreen();
+    } else if (element.webkitRequestFullScreen) {
+      element.webkitRequestFullScreen();
+    } else if (element.mozRequestFullScreen) {
+      element.mozRequestFullScreen();
+    } else if (element.msRequestFullscreen) {
+      // IE11
+      element.msRequestFullscreen();
+    }
+  }
+  this.fullscreen = !this.fullscreen;
+}
 
-    this.getMessageStatistics();
-  },
-};
+onMounted(() => {
+  if (document.body.clientWidth < 1500) {
+    collapseChage();
+  }
+  getMessageStatistics();
+});
 </script>
 <style scoped>
 .header {

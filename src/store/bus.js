@@ -37,6 +37,6 @@
 import mitt from "mitt";
 
 // 使用 Event Bus
-const bus = mitt();
+const emitter = mitt();
 
-export default bus;
+export default emitter;

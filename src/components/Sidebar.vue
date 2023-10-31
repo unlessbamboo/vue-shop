@@ -24,13 +24,13 @@
         <!-- a. 三级菜单 -->
         <template v-if="item.subs">
           <el-submenu :index="item.index" :key="item.index">
-            <template slot="title">
+            <template #title>
               <i :class="item.icon"></i>
-              <span slot="title">{{ item.title }}</span>
+              <span>{{ item.title }}</span>
             </template>
             <template v-for="subItem in item.subs">
               <el-submenu v-if="subItem.subs" :index="subItem.index" :key="subItem.index">
-                <template slot="title">{{ subItem.title }}</template>
+                <template #title>{{ subItem.title }}</template>
                 <el-menu-item v-for="(threeItem, i) in subItem.subs" :key="i" :index="threeItem.index">
                   {{ threeItem.title }}
                 </el-menu-item>
@@ -43,7 +43,9 @@
         <template v-else>
           <el-menu-item :index="item.index" :key="item.index">
             <i :class="item.icon"></i>
-            <span slot="title">{{ item.title }}</span>
+            <template #title>
+              <span>{{ item.title }}</span>
+            </template>
           </el-menu-item>
         </template>
       </template>
@@ -51,92 +53,89 @@
   </div>
 </template>
 
-<script>
-import bus from "@/store/bus";
-export default {
-  data() {
-    return {
-      collapse: false,
-      // 注意, 一旦item中存在2级路由, 则其他index都应该使用绝对路径, 否则会404
-      items: [
-        { icon: "el-icon-lx-home", index: "/dashboard", title: "系统首页" },
-        { icon: "el-icon-lx-cascades", index: "/userinfos", title: "用户列表" },
-        {
-          icon: "el-icon-lx-copy",
-          index: "1",
-          title: "用户中心",
-          subs: [
-            { index: "/user/person", title: "个人中心" },
-            { index: "/user/messages", title: "系统消息" },
-          ],
-        },
-        {
-          icon: "el-icon-s-check",
-          index: "2",
-          title: "权限管理",
-          subs: [
-            { index: "/power/roles", title: "角色列表" },
-            { index: "/power/rights", title: "权限列表" },
-          ],
-        },
-        {
-          icon: "el-icon-s-goods",
-          index: "3",
-          title: "商品管理",
-          subs: [
-            { index: "/goods/list", title: "商品列表" },
-            { index: "/goods/params", title: "分类参数" },
-            { index: "/goods/categories", title: "商品分类" },
-            {
-              // 主要用于测试三级菜单
-              index: "3-2",
-              title: "商品操作",
-              icon: "el-icon-lx-hot",
-              subs: [{ index: "/goods/add", title: "商品添加" }],
-            },
-          ],
-        },
-        {
-          icon: "el-icon-s-order",
-          index: "4",
-          title: "订单管理",
-          subs: [{ index: "/orders", title: "订单列表" }],
-        },
-        {
-          icon: "el-icon-lx-calendar",
-          index: "5",
-          title: "表单相关",
-          subs: [
-            { index: "/form", title: "基本表单" },
-            { index: "/editor", title: "富文本编辑器" },
-            { index: "/markdown", title: "markdown编辑器" },
-            { index: "/upload", title: "文件上传" },
-          ],
-        },
-        { icon: "el-icon-rank", index: "task", title: "工作流程" },
-        { icon: "el-icon-monitor", index: "systeminfo", title: "系统监控" },
-        { icon: "el-icon-lx-redpacket_fill", index: "/donate", title: "支持作者" },
-      ],
-    };
+<script setup name="sidebar">
+import { ref, computed, onMounted, getCurrentInstance } from "vue";
+
+const { proxy } = getCurrentInstance();
+const $mitt = proxy.$mitt;
+
+const collapse = ref(false);
+// 注意, 一旦item中存在2级路由, 则其他index都应该使用绝对路径, 否则会404
+const items = ref([
+  { icon: "el-icon-lx-home", index: "/dashboard", title: "系统首页" },
+  { icon: "el-icon-lx-cascades", index: "/userinfos", title: "用户列表" },
+  {
+    icon: "el-icon-lx-copy",
+    index: "1",
+    title: "用户中心",
+    subs: [
+      { index: "/user/person", title: "个人中心" },
+      { index: "/user/messages", title: "系统消息" },
+    ],
   },
-  computed: {
-    /*
-    这个default-active控制当前生效的页面, 这个非常重要, 若返回的值同route/index.js中不配对,
-    则不会生效.
-    */
-    onRoutes() {
-      return this.$route.path;
-    },
+  {
+    icon: "el-icon-s-check",
+    index: "2",
+    title: "权限管理",
+    subs: [
+      { index: "/power/roles", title: "角色列表" },
+      { index: "/power/rights", title: "权限列表" },
+    ],
   },
-  created() {
-    // 通过 Event Bus 进行组件间通信，来折叠侧边栏
-    bus.$on("collapse", (msg) => {
-      this.collapse = msg;
-      // 见Home.vue, 整体的消息传递流程: header -> sidebar -> home
-      bus.$emit("collapse-content", msg);
-    });
+  {
+    icon: "el-icon-s-goods",
+    index: "3",
+    title: "商品管理",
+    subs: [
+      { index: "/goods/list", title: "商品列表" },
+      { index: "/goods/params", title: "分类参数" },
+      { index: "/goods/categories", title: "商品分类" },
+      {
+        // 主要用于测试三级菜单
+        index: "3-2",
+        title: "商品操作",
+        icon: "el-icon-lx-hot",
+        subs: [{ index: "/goods/add", title: "商品添加" }],
+      },
+    ],
   },
-};
+  {
+    icon: "el-icon-s-order",
+    index: "4",
+    title: "订单管理",
+    subs: [{ index: "/orders", title: "订单列表" }],
+  },
+  {
+    icon: "el-icon-lx-calendar",
+    index: "5",
+    title: "表单相关",
+    subs: [
+      { index: "/form", title: "基本表单" },
+      { index: "/editor", title: "富文本编辑器" },
+      { index: "/markdown", title: "markdown编辑器" },
+      { index: "/upload", title: "文件上传" },
+    ],
+  },
+  { icon: "el-icon-rank", index: "task", title: "工作流程" },
+  { icon: "el-icon-monitor", index: "systeminfo", title: "系统监控" },
+  { icon: "el-icon-lx-redpacket_fill", index: "/donate", title: "支持作者" },
+]);
+
+/*
+这个default-active控制当前生效的页面, 这个非常重要, 若返回的值同route/index.js中不配对,
+则不会生效.
+*/
+const onRoutes = computed(() => {
+  return this.$route.path;
+});
+onMounted(() => {
+  // 通过 Event Bus 进行组件间通信，来折叠侧边栏
+  $mitt.on("collapse", (msg) => {
+    this.collapse = msg;
+    // 见Home.vue, 整体的消息传递流程: header -> sidebar -> home
+    $mitt.emit("collapse-content", msg);
+  });
+});
 </script>
 
 <style scoped>
