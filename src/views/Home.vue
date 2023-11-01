@@ -2,19 +2,19 @@
   <div class="wrapper">
     <v-head></v-head>
     <v-sidebar></v-sidebar>
+
     <!-- content-box和content-collpse见通用样式:  main.css -->
     <div class="content-box" :class="{ 'content-collapse': collapse }">
       <v-tags></v-tags>
+
       <div class="content">
-        <transition name="move" mode="out-in">
-          <!-- <keep-alive>, 用于在组件切换时缓存和重用组件实例, 实现对路由组件的缓存
-              a. 通过 include 属性指定要缓存的组件列表
-              b. router-view被包裹在keep-alive中, 所以切换路由时，被缓存的组件实例会被保留，而不会被销毁
-          -->
-          <keep-alive :include="tagsList">
-            <router-view></router-view>
-          </keep-alive>
-        </transition>
+        <router-view v-slot="{ Component }">
+          <transition name="move" mode="out-in">
+            <keep-alive :include="tagsList">
+              <component :is="Component" />
+            </keep-alive>
+          </transition>
+        </router-view>
         <el-backtop target=".content"></el-backtop>
       </div>
     </div>

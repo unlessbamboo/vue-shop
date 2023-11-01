@@ -41,10 +41,10 @@
             <el-button
               type="primary"
               icon="el-icon-edit"
-              size="mini"
+              size="small"
               @click="showEditGoodsDialog(scope.row)"></el-button>
             <!-- b. 删除 -->
-            <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeById(scope.row.id)"></el-button>
+            <el-button type="danger" icon="el-icon-delete" size="small" @click="removeById(scope.row.id)"></el-button>
           </template>
         </el-table-column>
       </el-table>

@@ -23,21 +23,21 @@
       <template v-for="item in items">
         <!-- a. 三级菜单 -->
         <template v-if="item.subs">
-          <el-submenu :index="item.index" :key="item.index">
+          <el-sub-menu :index="item.index" :key="item.index">
             <template #title>
               <i :class="item.icon"></i>
               <span>{{ item.title }}</span>
             </template>
             <template v-for="subItem in item.subs">
-              <el-submenu v-if="subItem.subs" :index="subItem.index" :key="subItem.index">
+              <el-sub-menu v-if="subItem.subs" :index="subItem.index" :key="subItem.index">
                 <template #title>{{ subItem.title }}</template>
                 <el-menu-item v-for="(threeItem, i) in subItem.subs" :key="i" :index="threeItem.index">
                   {{ threeItem.title }}
                 </el-menu-item>
-              </el-submenu>
+              </el-sub-menu>
               <el-menu-item v-else :index="subItem.index" :key="subItem.index">{{ subItem.title }}</el-menu-item>
             </template>
-          </el-submenu>
+          </el-sub-menu>
         </template>
         <!-- b. 二级菜单 -->
         <template v-else>
@@ -53,11 +53,13 @@
   </div>
 </template>
 
-<script setup name="sidebar">
-import { ref, computed, onMounted, getCurrentInstance } from "vue";
+<script setup name="vsidebar">
+import { ref, computed, onMounted, getCurrentInstance, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 const { proxy } = getCurrentInstance();
 const $mitt = proxy.$mitt;
+const route = useRoute();
 
 const collapse = ref(false);
 // 注意, 一旦item中存在2级路由, 则其他index都应该使用绝对路径, 否则会404
@@ -126,12 +128,12 @@ const items = ref([
 则不会生效.
 */
 const onRoutes = computed(() => {
-  return this.$route.path;
+  return route.path;
 });
 onMounted(() => {
   // 通过 Event Bus 进行组件间通信，来折叠侧边栏
   $mitt.on("collapse", (msg) => {
-    this.collapse = msg;
+    collapse.value = msg;
     // 见Home.vue, 整体的消息传递流程: header -> sidebar -> home
     $mitt.emit("collapse-content", msg);
   });

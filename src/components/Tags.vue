@@ -12,7 +12,7 @@
     <!-- el-dropdown 是 Element UI 中的下拉菜单组件，用于创建一个可触发下拉菜单的按钮或区域。 -->
     <div class="tags-close-box">
       <el-dropdown @command="handleTags">
-        <el-button size="mini" type="primary">
+        <el-button size="small" type="primary">
           标签选项
           <!-- el-icon--right 类作为 el-icon 的附加类，以实现右对齐效果
               a. -- 用于表示一种特定的 CSS 类名格式，用于为元素添加额外的样式
@@ -33,9 +33,9 @@
 </template>
 
 <script setup name="tags">
-import { ref, computed, onMounted, getCurrentInstance } from "vue";
+import { ref, computed, onMounted, getCurrentInstance, watch } from "vue";
 import { useStore } from "vuex";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import SimpleApi from "@/api/simpleApi";
 import Axiosapi from "@/utils/request";
 import { checkRequestResult } from "@/mixins/requestCommon";
@@ -43,6 +43,7 @@ import { checkRequestResult } from "@/mixins/requestCommon";
 // 全局变量
 const { proxy } = getCurrentInstance();
 const $mitt = proxy.$mitt;
+const route = useRoute();
 const router = useRouter();
 const store = useStore();
 const tagsList = ref([]);
@@ -92,7 +93,6 @@ function setTags(myRoute) {
   }
 
   // b. 见home.vue, 主要用于组件的缓存, 与展示无关
-  // $mitt.emit("tags-flush", this.tagsList);
   store.dispatch("updateTagsList", tagsList.value);
 }
 
@@ -102,7 +102,7 @@ function handleTags(command) {
 
 // =================计算属性和生命周期=================
 const showTags = computed(() => {
-  return this.tagsList.length > 0;
+  return tagsList.value.length > 0;
 });
 /*
 功能: 一个监视器函数，用于监听路由对象的变化。当路由发生变化时，会触发该监视器函数，

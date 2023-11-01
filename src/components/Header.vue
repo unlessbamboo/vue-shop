@@ -88,7 +88,7 @@
   </div>
 </template>
 
-<script setup name="header">
+<script setup name="vheader">
 import { ref, computed, onMounted, getCurrentInstance } from "vue";
 import { useRouter } from "vue-router";
 import SimpleApi from "@/api/simpleApi";

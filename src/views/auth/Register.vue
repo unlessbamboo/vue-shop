@@ -4,7 +4,7 @@
       <div class="ms-register-title-container">
         <div class="ms-register-title">注册</div>
         <div class="ms-register-title-goto">
-          <el-button class="ms-register-title-goto-btn" type="text" @click="goToLoginPage">
+          <el-button class="ms-register-title-goto-btn" type="primary" link @click="goToLoginPage">
             返回登录
             <i class="el-icon-arrow-right"></i>
           </el-button>
@@ -12,32 +12,22 @@
       </div>
       <el-form :model="registerForm" :rules="rules" ref="register" label-width="0px" class="ms-content">
         <el-form-item prop="username" class="custom-form-item">
-          <el-input v-model="registerForm.username" placeholder="请输入用户名">
-            <!-- <el-button slot="prepend" icon="el-icon-lx-people"></el-button> -->
-          </el-input>
+          <el-input v-model="registerForm.username" placeholder="请输入用户名"></el-input>
         </el-form-item>
 
         <el-form-item prop="email" class="custom-form-item">
-          <el-input v-model="registerForm.email" placeholder="请输入邮箱">
-            <!-- <el-button slot="prepend" icon="el-icon-message"></el-button> -->
-          </el-input>
+          <el-input v-model="registerForm.email" placeholder="请输入邮箱"></el-input>
         </el-form-item>
 
         <el-form-item prop="password" class="custom-form-item">
-          <el-input type="password" placeholder="请输入密码" v-model="registerForm.password">
-            <!-- <el-button slot="prepend" icon="el-icon-lx-lock"></el-button> -->
-          </el-input>
+          <el-input type="password" placeholder="请输入密码" v-model="registerForm.password"></el-input>
         </el-form-item>
         <el-form-item prop="confirmPassword" class="custom-form-item">
-          <el-input type="password" placeholder="请确认密码" v-model="registerForm.confirmPassword">
-            <!-- <el-button slot="prepend" icon="el-icon-lx-lock"></el-button> -->
-          </el-input>
+          <el-input type="password" placeholder="请确认密码" v-model="registerForm.confirmPassword"></el-input>
         </el-form-item>
 
         <el-form-item prop="age" class="custom-form-item">
-          <el-input v-model="registerForm.age" placeholder="请输入年龄" type="number">
-            <!-- <el-button slot="prepend" icon="el-icon-date"></el-button> -->
-          </el-input>
+          <el-input v-model="registerForm.age" placeholder="请输入年龄" type="number"></el-input>
         </el-form-item>
 
         <!-- options是一个包含三级联动信息的对象数组
@@ -291,8 +281,8 @@ export default {
   color: #fff;
 }
 
-/* 注意: 使用 ::v-deep 或 /deep/ 或 >>> 深度选择器仅仅是可以将样式影响到子组件中
-   .a >>> .b 变为 .a[data-vf3f3eg9] .b
+/* 注意: 使用 ::v-deep 深度选择器仅仅是可以将样式影响到子组件中
+   .a::v-deep .b 变为 .a[data-vf3f3eg9] .b
 
 在element-ui中, 大部分情况下特别是那种下拉框等情况, 此时就不能使用scoped了.
  */

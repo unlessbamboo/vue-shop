@@ -33,8 +33,8 @@
         </el-table-column>
         <el-table-column label="操作">
           <template>
-            <el-button icon="el-icon-edit" size="mini" type="primary" @click="showBox"></el-button>
-            <el-button icon="el-icon-location" size="mini" type="success" @click="showProgressBox"></el-button>
+            <el-button icon="el-icon-edit" size="small" type="primary" @click="showBox"></el-button>
+            <el-button icon="el-icon-location" size="small" type="success" @click="showProgressBox"></el-button>
           </template>
         </el-table-column>
       </el-table>

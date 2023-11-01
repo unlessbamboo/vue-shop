@@ -183,7 +183,7 @@ div.card_item_18 {
   height: 20rem;
 }
 
-.card_item >>> .el-card__header {
+.card_item:deep(.el-card__header) {
   padding-top: 5px;
   padding-bottom: 5px;
 }

@@ -64,18 +64,18 @@
         <el-table-column label="角色描述" prop="desc"></el-table-column>
         <el-table-column label="操作" width="300px">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" icon="el-icon-edit" @click="showEditDialog(scope.row.id)">
+            <el-button size="small" type="primary" icon="el-icon-edit" @click="showEditDialog(scope.row.id)">
               编辑
             </el-button>
             <el-button
-              size="mini"
+              size="small"
               type="danger"
               icon="el-icon-delete"
               :disabled="!scope.row.can_delete"
               @click="removeRoleById(scope.row.id)">
               删除
             </el-button>
-            <el-button size="mini" type="warning" icon="el-icon-setting" @click="showSetRightDialog(scope.row)">
+            <el-button size="small" type="warning" icon="el-icon-setting" @click="showSetRightDialog(scope.row)">
               分配权限
             </el-button>
           </template>

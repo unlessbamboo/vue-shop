@@ -31,7 +31,7 @@
         <!-- 添加动态参数面板 -->
         <el-tab-pane label="动态参数" name="many">
           <!-- a. 添加参数按钮 -->
-          <el-button type="primary" size="mini" :disabled="isBtnDisabled" @click="addDialogVisible = true">
+          <el-button type="primary" size="small" :disabled="isBtnDisabled" @click="addDialogVisible = true">
             添加参数
           </el-button>
 
@@ -69,10 +69,10 @@
             <el-table-column label="参数值" prop="values"></el-table-column>
             <el-table-column label="操作" width="200px">
               <template slot-scope="scope">
-                <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)">
+                <el-button type="primary" icon="el-icon-edit" size="small" @click="showEditDialog(scope.row.id)">
                   编辑
                 </el-button>
-                <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeParams(scope.row.id)">
+                <el-button type="danger" icon="el-icon-delete" size="small" @click="removeParams(scope.row.id)">
                   删除
                 </el-button>
               </template>
@@ -83,7 +83,7 @@
         <!-- 添加静态属性面板 -->
         <el-tab-pane label="静态属性" name="only">
           <!-- 添加属性按钮 -->
-          <el-button type="primary" size="mini" :disabled="isBtnDisabled" @click="addDialogVisible = true">
+          <el-button type="primary" size="small" :disabled="isBtnDisabled" @click="addDialogVisible = true">
             添加属性
           </el-button>
 
@@ -121,10 +121,10 @@
             <el-table-column label="参数值" prop="values"></el-table-column>
             <el-table-column label="操作" width="200px">
               <template slot-scope="scope">
-                <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)">
+                <el-button type="primary" icon="el-icon-edit" size="small" @click="showEditDialog(scope.row.id)">
                   编辑
                 </el-button>
-                <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeParams(scope.row.id)">
+                <el-button type="danger" icon="el-icon-delete" size="small" @click="removeParams(scope.row.id)">
                   删除
                 </el-button>
               </template>

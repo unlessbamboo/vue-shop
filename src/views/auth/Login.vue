@@ -4,7 +4,7 @@
       <div class="ms-login-title-container">
         <div class="ms-login-title">登录</div>
         <div class="ms-login-title-goto">
-          <el-button class="ms-login-title-goto-btn" type="text" @click="goToRegisterPage">
+          <el-button class="ms-login-title-goto-btn" type="primary" link @click="goToRegisterPage">
             前往注册
             <i class="el-icon-arrow-right"></i>
           </el-button>
@@ -12,14 +12,14 @@
       </div>
       <el-form :model="loginForm" :rules="rules" ref="login" label-width="0px" class="ms-content">
         <el-form-item prop="username" class="custom-form-item">
-          <el-input v-model="loginForm.username" placeholder="用户名">
-            <!-- <el-button slot="prepend" icon="el-icon-lx-people"></el-button> -->
-          </el-input>
+          <el-input v-model="loginForm.username" placeholder="用户名"></el-input>
         </el-form-item>
         <el-form-item prop="password" class="custom-form-item">
-          <el-input type="password" placeholder="密码" v-model="loginForm.password" @keyup.enter.native="submitForm()">
-            <!-- <el-button slot="prepend" icon="el-icon-lx-lock" /> -->
-          </el-input>
+          <el-input
+            type="password"
+            placeholder="密码"
+            v-model="loginForm.password"
+            @keyup.enter.native="submitForm()"></el-input>
           <div class="login-forget-passwd" @click="goToResetPwdPage">忘记密码</div>
         </el-form-item>
         <div class="login-btn">
@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import AuthLayout from "@/views/auth/AuthLayout";
+import AuthLayout from "@/views/auth/AuthLayout.vue";
 
 export default {
   components: {
@@ -88,7 +88,7 @@ export default {
   position: relative;
   width: 100%;
   height: 100%;
-  background-image: url(~@/assets/img/login-bg.jpg);
+  background-image: url(@/assets/img/login-bg.jpg);
   background-size: 100%;
 }
 

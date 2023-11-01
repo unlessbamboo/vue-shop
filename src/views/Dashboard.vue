@@ -98,7 +98,9 @@
             <template v-slot:header>
               <div class="clearfix">
                 <span>待办事项</span>
-                <el-button style="float: right; padding: 3px 0" type="text" @click="handleTodoAdd">添加</el-button>
+                <el-button style="float: right; padding: 3px 0" type="primary" link @click="handleTodoAdd">
+                  添加
+                </el-button>
               </div>
             </template>
             <el-table :show-header="false" :data="todoList" style="width: 100%">
@@ -122,13 +124,13 @@
                   <el-button
                     type="primary"
                     icon="el-icon-edit"
-                    size="mini"
+                    size="small"
                     circle
                     @click="handleTodoEdit(scope.row.id, scope.row)"></el-button>
                   <el-button
                     type="danger"
                     icon="el-icon-delete"
-                    size="mini"
+                    size="small"
                     circle
                     @click="handleTodoDelete(scope.row.id, scope.row)"></el-button>
                 </template>
@@ -159,32 +161,25 @@
         <!-- a. 柱状图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <v-chart
-              :option="salesData.options"
-              theme="ovilia-green"
-              ref="barRef"
-              class="schart"
-              autoresize
-              :loading="loading"
-              :loadingOptions="loadingOptions" />
+            <v-chart :option="salesData.options" theme="ovilia-green" ref="barRef" class="echart" autoresize />
           </el-card>
         </el-col>
         <!-- 折线图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <schart ref="lineRef" class="schart" canvasId="line" :options="salesData.options2"></schart>
+            <v-chart ref="lineRef" class="echart" :options="salesData.options2" />
           </el-card>
         </el-col>
         <!-- 饼状图, 注意, 数据本身就有一定的格式要求 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <schart ref="pieRef" class="schart" canvasId="pie" :options="salesData.options3"></schart>
+            <v-chart ref="pieRef" class="echart" options="salesData.options3" />
           </el-card>
         </el-col>
         <!-- 环形图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <schart ref="ringRef" class="schart" canvasId="ring" :options="salesData.options4"></schart>
+            <v-chart ref="ringRef" class="echart" :options="salesData.options4" />
           </el-card>
         </el-col>
       </el-row>
@@ -235,9 +230,20 @@
 </template>
 
 <script setup name="dashboard">
-import { ref, onMounted, onBeforeUnmount, onBeforeMount, onActivated, onDeactivated, watch } from "vue";
+import {
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  getCurrentInstance,
+  onBeforeMount,
+  onActivated,
+  onDeactivated,
+  computed,
+  watch,
+} from "vue";
 import { ElMessageBox } from "element-plus";
 import "@/utils/chart";
+import VChart, { THEME_KEY } from "vue-echarts";
 
 import SimpleApi from "@/api/simpleApi";
 import Axiosapi from "@/utils/request";
@@ -584,12 +590,12 @@ function getStatisticsInfo() {
   display: flex;
   flex-direction: column;
 }
-.todo-card-container >>> .el-card__body {
+.todo-card-container:deep(.el-card__body) {
   display: flex;
   flex-direction: column;
   flex: 1;
 }
-.todo-card-container >>> .el-table {
+.todo-card-container:deep(.el-table) {
   flex: 1;
 }
 .todo-item {
@@ -607,7 +613,7 @@ function getStatisticsInfo() {
   margin-top: 5px;
 }
 
-.schart {
+.echart {
   /* width: 100%; */
   height: 300px;
 }

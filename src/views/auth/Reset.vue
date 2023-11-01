@@ -4,7 +4,7 @@
       <div class="ms-reset-password-title-container">
         <div class="ms-reset-password-title">重置密码</div>
         <div class="ms-reset-password-title-goto">
-          <el-button class="ms-reset-password-title-goto-btn" type="text" @click="goToLoginPage">
+          <el-button class="ms-reset-password-title-goto-btn" type="primary" link @click="goToLoginPage">
             返回登录
             <i class="el-icon-arrow-right"></i>
           </el-button>

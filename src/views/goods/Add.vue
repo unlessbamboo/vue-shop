@@ -357,7 +357,7 @@ export default {
 }
 
 /* 编辑框内容样式调整 */
-.quill-editor >>> .ql-container {
+.quill-editor:deep(.ql-container) {
   min-height: 380px;
 }
 
@@ -370,10 +370,10 @@ export default {
 }
 
 /* 为了让el-button始终在底部, 设置el-tabs和el-table-pane最小高度 */
-.el-tabs >>> .el-tabs__content {
+.el-tabs:deep(.el-tabs__content) {
   height: 500px;
 }
-.el-tabs >>> .el-tab-pane {
+.el-tabs:deep(.el-tab-pane) {
   height: 100%;
   display: flex;
   flex-direction: column;

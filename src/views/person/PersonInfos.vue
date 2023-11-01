@@ -85,20 +85,20 @@
             <el-button
               type="primary"
               icon="el-icon-edit"
-              size="mini"
+              size="small"
               circle
               @click="handleEdit(scope.$index, scope.row)"></el-button>
             <el-button
               type="danger"
               icon="el-icon-delete"
-              size="mini"
+              size="small"
               circle
               @click="handleDelete(scope.$index, scope.row)"></el-button>
             <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
               <el-button
                 type="warning"
                 icon="el-icon-setting"
-                size="mini"
+                size="small"
                 circle
                 @click="getEnableRoles(scope.row)"></el-button>
             </el-tooltip>

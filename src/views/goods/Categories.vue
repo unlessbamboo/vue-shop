@@ -41,17 +41,17 @@
 
         <!-- 级别 -->
         <template slot="order" slot-scope="scope">
-          <el-tag size="mini" v-if="scope.row.level === 0">一级</el-tag>
-          <el-tag type="success" size="mini" v-else-if="scope.row.level === 1">二级</el-tag>
-          <el-tag type="warning" size="mini" v-else>三级</el-tag>
+          <el-tag size="small" v-if="scope.row.level === 0">一级</el-tag>
+          <el-tag type="success" size="small" v-else-if="scope.row.level === 1">二级</el-tag>
+          <el-tag type="warning" size="small" v-else>三级</el-tag>
         </template>
 
         <!-- 操作 -->
         <template slot="opt" slot-scope="scope">
-          <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)">
+          <el-button type="primary" icon="el-icon-edit" size="small" @click="showEditDialog(scope.row.id)">
             编辑
           </el-button>
-          <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeCateById(scope.row.id)">
+          <el-button type="danger" icon="el-icon-delete" size="small" @click="removeCateById(scope.row.id)">
             删除
           </el-button>
         </template>
