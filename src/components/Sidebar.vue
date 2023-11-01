@@ -25,7 +25,8 @@
         <template v-if="item.subs">
           <el-sub-menu :index="item.index" :key="item.index">
             <template #title>
-              <i :class="item.icon"></i>
+              <!-- <component :is="item.icon" class="shopIcon"></component> -->
+              <Icon :icon="item.icon" class="shopIcon" />
               <span>{{ item.title }}</span>
             </template>
             <template v-for="subItem in item.subs">
@@ -42,7 +43,7 @@
         <!-- b. 二级菜单 -->
         <template v-else>
           <el-menu-item :index="item.index" :key="item.index">
-            <i :class="item.icon"></i>
+            <Icon :icon="item.icon" class="shopIcon" />
             <template #title>
               <span>{{ item.title }}</span>
             </template>
@@ -58,16 +59,15 @@ import { ref, computed, onMounted, getCurrentInstance, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
 const { proxy } = getCurrentInstance();
-const $mitt = proxy.$mitt;
 const route = useRoute();
 
 const collapse = ref(false);
 // 注意, 一旦item中存在2级路由, 则其他index都应该使用绝对路径, 否则会404
 const items = ref([
-  { icon: "el-icon-lx-home", index: "/dashboard", title: "系统首页" },
-  { icon: "el-icon-lx-cascades", index: "/userinfos", title: "用户列表" },
+  { icon: "HomeFilled", index: "/dashboard", title: "系统首页" },
+  { icon: "User", index: "/userinfos", title: "用户列表" },
   {
-    icon: "el-icon-lx-copy",
+    icon: "Grid",
     index: "1",
     title: "用户中心",
     subs: [
@@ -76,7 +76,7 @@ const items = ref([
     ],
   },
   {
-    icon: "el-icon-s-check",
+    icon: "Stamp",
     index: "2",
     title: "权限管理",
     subs: [
@@ -85,7 +85,7 @@ const items = ref([
     ],
   },
   {
-    icon: "el-icon-s-goods",
+    icon: "Goods",
     index: "3",
     title: "商品管理",
     subs: [
@@ -96,19 +96,19 @@ const items = ref([
         // 主要用于测试三级菜单
         index: "3-2",
         title: "商品操作",
-        icon: "el-icon-lx-hot",
+        icon: "ShoppingCart",
         subs: [{ index: "/goods/add", title: "商品添加" }],
       },
     ],
   },
   {
-    icon: "el-icon-s-order",
+    icon: "Shop",
     index: "4",
     title: "订单管理",
     subs: [{ index: "/orders", title: "订单列表" }],
   },
   {
-    icon: "el-icon-lx-calendar",
+    icon: "Calendar",
     index: "5",
     title: "表单相关",
     subs: [
@@ -118,9 +118,9 @@ const items = ref([
       { index: "/upload", title: "文件上传" },
     ],
   },
-  { icon: "el-icon-rank", index: "task", title: "工作流程" },
-  { icon: "el-icon-monitor", index: "systeminfo", title: "系统监控" },
-  { icon: "el-icon-lx-redpacket_fill", index: "/donate", title: "支持作者" },
+  { icon: "Rank", index: "task", title: "工作流程" },
+  { icon: "Monitor", index: "systeminfo", title: "系统监控" },
+  { icon: "Money", index: "/donate", title: "支持作者" },
 ]);
 
 /*
@@ -132,10 +132,10 @@ const onRoutes = computed(() => {
 });
 onMounted(() => {
   // 通过 Event Bus 进行组件间通信，来折叠侧边栏
-  $mitt.on("collapse", (msg) => {
+  proxy.$mitt.on("collapse", (msg) => {
     collapse.value = msg;
     // 见Home.vue, 整体的消息传递流程: header -> sidebar -> home
-    $mitt.emit("collapse-content", msg);
+    proxy.$mitt.emit("collapse-content", msg);
   });
 });
 </script>

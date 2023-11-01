@@ -2,8 +2,9 @@
   <div class="header">
     <!-- 折叠按钮 -->
     <div class="collapse-btn" @click="collapseChage">
-      <i v-if="!collapse" class="el-icon-s-fold"></i>
-      <i v-else class="el-icon-s-unfold"></i>
+      <!-- <font-awesome-icon icon="fa-solid fa-bars" /> -->
+      <Icon v-if="!collapse" icon="Fold" class="shopIcon" style="margin-right: 0; width: 30px" />
+      <Icon v-else icon="Expand" class="shopIcon" style="margin-right: 0; width: 30px" />
     </div>
     <div class="logo">管理-后台</div>
 
@@ -12,14 +13,14 @@
         <!-- 跳转到bamboo首页 -->
         <div class="btn-myhome" @click="handleGoHome">
           <el-tooltip effect="dark" content="个人主页" placement="bottom">
-            <i class="el-icon-s-home"></i>
+            <Icon icon="HomeFilled" class="curIcon" />
           </el-tooltip>
         </div>
 
         <!-- 切换后端服务 -->
-        <el-dropdown class="btn-fullscreen" @command="handleChangeHost">
+        <el-dropdown class="btn-myhome" @command="handleChangeHost">
           <span class="el-dropdown-link">
-            <i class="el-icon-orange"></i>
+            <Icon icon="Orange" class="curIcon" />
           </span>
           <template #dropdown>
             <el-dropdown-menu>
@@ -31,10 +32,10 @@
         </el-dropdown>
 
         <!-- 全屏显示 -->
-        <div class="btn-fullscreen" @click="handleFullScreen">
+        <div class="btn-myhome" @click="handleFullScreen">
           <!-- 文字提示组件, 一般用于鼠标移入后的提示 -->
           <el-tooltip effect="dark" :content="fullscreen ? `取消全屏` : `全屏`" placement="bottom">
-            <i class="el-icon-rank"></i>
+            <Icon icon="FullScreen" class="curIcon" />
           </el-tooltip>
         </div>
 
@@ -47,7 +48,7 @@
                 b. el-icon-bell 是 Element UI 提供的一个图标组件，用于显示一个钟形的图标
             -->
             <router-link to="/user/messages">
-              <i class="el-icon-bell"></i>
+              <Icon icon="Bell" class="curIcon" />
             </router-link>
           </el-tooltip>
           <span class="btn-bell-badge" v-if="message"></span>
@@ -62,7 +63,7 @@
         <el-dropdown class="user-name" trigger="click" @command="handleCommand">
           <span class="el-dropdown-link">
             {{ username }}
-            <i class="el-icon-caret-bottom"></i>
+            <Icon icon="CaretBottom" class="curIcon" style="width: 20px; margin-right: 0" />
           </span>
           <template #dropdown>
             <el-dropdown-menu>
@@ -97,7 +98,6 @@ import { checkRequestResult } from "@/mixins/requestCommon";
 
 // 全局变量
 const { proxy } = getCurrentInstance();
-const $mitt = proxy.$mitt;
 const router = useRouter();
 
 const flaskSwagger = import.meta.env.VITE_APP_FLASK_BACKEND_HOST + "/api/v1/swagger";
@@ -134,7 +134,7 @@ const getMessageStatistics = async () => {
 // 侧边栏折叠, 通过全局事件总线来进行组件间的通信, 整体的消息传递流程: header -> sidebar -> home
 function collapseChage() {
   collapse.value = !collapse.value;
-  $mitt.emit("collapse", collapse.value);
+  proxy.$mitt.emit("collapse", collapse.value);
 }
 
 // 跳转到个人主页
@@ -161,8 +161,8 @@ function handleChangeHost(cmd) {
   }
 
   window.sessionStorage.setItem("shopDynamicHost", newBaseHost);
-  $mitt.emit("dynamicURLChange", newBaseHost); // 使用事件总线进行通知
-  $eMessage.success("成功切换后端服务为:" + newBaseHost);
+  proxy.$mitt.emit("dynamicURLChange", newBaseHost); // 使用事件总线进行通知
+  proxy.$eMessage.success("成功切换后端服务为:" + newBaseHost);
 }
 
 // 全屏事件, 下面的代码是通用方式(chatgpt也是这样写的)
@@ -200,6 +200,7 @@ onMounted(() => {
   getMessageStatistics();
 });
 </script>
+
 <style scoped>
 .header {
   position: relative;
@@ -217,6 +218,16 @@ onMounted(() => {
   padding: 0 21px;
   cursor: pointer;
   line-height: 70px;
+}
+
+/* 图标样式 */
+.curIcon {
+  width: 25px;
+  margin-right: 10px;
+  color: #fff;
+  text-align: center;
+  font-size: 18px;
+  vertical-align: middle;
 }
 
 .header .logo {
@@ -242,7 +253,8 @@ onMounted(() => {
 }
 
 .btn-myhome {
-  margin-right: 10px;
+  display: flex;
+  margin-right: 15px;
   font-size: 24px;
 }
 

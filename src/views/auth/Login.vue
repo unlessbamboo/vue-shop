@@ -6,7 +6,7 @@
         <div class="ms-login-title-goto">
           <el-button class="ms-login-title-goto-btn" type="primary" link @click="goToRegisterPage">
             前往注册
-            <i class="el-icon-arrow-right"></i>
+            <font-awesome-icon icon="fa-solid fa-chevron-right" />
           </el-button>
         </div>
       </div>
@@ -110,7 +110,7 @@ function goToResetPwdPage() {
   text-align: right;
   padding-right: 20px;
 }
-.ms-login-title-goto .el-button--text {
+.ms-login-title-goto-btn {
   font-size: 12px;
   color: #fff;
 }

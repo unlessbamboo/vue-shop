@@ -1,4 +1,4 @@
-import { createApp } from "vue";
+import { createApp, createVNode } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store/vuex";
@@ -30,10 +30,16 @@ app.config.globalProperties.$eMessage = elementMessage; // 用于替代vue2中�
 app.config.globalProperties.$mitt = emitter; // 新版本事件总线
 
 // 全局注册elementplus图标
-Object.keys(ElementPlusIconsVue).forEach((key) => {
+/* Object.keys(ElementPlusIconsVue).forEach((key) => {
+  console.log(key);
   app.component(key, ElementPlusIconsVue[key]);
-});
-
+}); */
+// Icon自定组件
+const Icon = (props) => {
+  const { icon } = props;
+  return createVNode(ElementPlusIconsVue[icon]);
+};
+app.component("Icon", Icon);
 app.component("tree-table", TreeTable);
 app.use(VueQuillEditor);
 app.use(ElementPlus, {

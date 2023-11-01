@@ -2,3 +2,11 @@
 [class^="el-icon-lx"] {
   font-family: lx-iconfont !important;
 }
+
+.shopIcon {
+  margin-right: 8px;
+  width: 24px;
+  text-align: center;
+  font-size: 18px;
+  vertical-align: middle;
+}
