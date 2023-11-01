@@ -10,6 +10,7 @@ import { ref } from "vue";
  */
 export function checkRequestResult(result, errormsg) {
   if (!result || !result.code) {
+    console.log("Error>>>>>>>>>>>>>>>>>");
     $eMessage.error(errormsg || "响应数据为空, 请检查");
     return false;
   }

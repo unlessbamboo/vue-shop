@@ -86,7 +86,7 @@ axiosapi.interceptors.response.use(
     }
   },
   (error) => {
-    console.log(error);
+    console.log("请求异常, 返回值不符合: ", error);
     if (error.response.status == 401) {
       router.push("/auth/login");
     }

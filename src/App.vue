@@ -6,7 +6,7 @@
 
 <script setup></script>
 
-<style scoped>
+<style>
 @import "@/assets/css/main.css";
 @import "@/assets/css/kanbanniang.css";
 @import "@/assets/css/color-dark.css";

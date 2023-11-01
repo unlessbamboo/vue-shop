@@ -124,12 +124,12 @@ function handleCommand(command) {
 }
 
 // 获取消息简要统计信息
-async function getMessageStatistics() {
+const getMessageStatistics = async () => {
   const { data: result } = await SimpleApi.fetchMessageStatistics();
   if (!checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
     message.value = result.data.unread;
   }
-}
+};
 
 // 侧边栏折叠, 通过全局事件总线来进行组件间的通信, 整体的消息传递流程: header -> sidebar -> home
 function collapseChage() {

@@ -67,7 +67,7 @@
   </div>
 </template>
 
-<script>
+<script setupe name="register">
 import provinceInfo from "@/data/province";
 
 export default {
@@ -202,7 +202,7 @@ export default {
   position: relative;
   width: 100%;
   height: 100%;
-  background-image: url(~@/assets/img/login-bg.jpg); /* 注册页的背景图片 */
+  background-image: url(@/assets/img/login-bg.jpg); /* 注册页的背景图片 */
   background-size: 100%;
 }
 .ms-register {

@@ -10,7 +10,7 @@
           </el-button>
         </div>
       </div>
-      <el-form :model="loginForm" :rules="rules" ref="login" label-width="0px" class="ms-content">
+      <el-form :model="loginForm" :rules="rules" ref="loginRef" label-width="0px" class="ms-content">
         <el-form-item prop="username" class="custom-form-item">
           <el-input v-model="loginForm.username" placeholder="用户名"></el-input>
         </el-form-item>
@@ -19,7 +19,7 @@
             type="password"
             placeholder="密码"
             v-model="loginForm.password"
-            @keyup.enter.native="submitForm()"></el-input>
+            @keyup.enter="submitForm()"></el-input>
           <div class="login-forget-passwd" @click="goToResetPwdPage">忘记密码</div>
         </el-form-item>
         <div class="login-btn">
@@ -31,56 +31,53 @@
   </div>
 </template>
 
-<script>
+<script setup name="login">
+import { ref, computed, watch, onBeforeMount, getCurrentInstance } from "vue";
+import { useStore } from "vuex";
+import { useRouter, useRoute } from "vue-router";
 import AuthLayout from "@/views/auth/AuthLayout.vue";
 
-export default {
-  components: {
-    AuthLayout,
-  },
-  data: function () {
-    return {
-      loginForm: {
-        username: "",
-        password: "",
-      },
-      rules: {
-        username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-        password: [{ required: true, message: "请输入密码", trigger: "blur" }],
-      },
-    };
-  },
-  methods: {
-    submitForm() {
-      this.$refs.login.validate(async (valid) => {
-        if (!valid) {
-          $eMessage.error("请输入账号和密码");
-          console.log("error submit!!");
-          return false;
-        }
-        const { data: result } = await this.$http.post("auth/login", this.loginForm);
-        if (result.code !== 100000) return $eMessage.error("登录失败");
+// 全局变量
+const { proxy } = getCurrentInstance();
+const router = useRouter();
 
-        $eMessage.success("登录成功");
+const loginRef = ref(null);
+const loginForm = ref({ username: "", password: "" });
+const rules = ref({
+  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  password: [{ required: true, message: "请输入密码", trigger: "blur" }],
+});
 
-        // 存储在local storage中
-        localStorage.setItem("ms_username", this.loginForm.username);
-        localStorage.setItem("ms_id", this.loginForm.id);
-        localStorage.setItem("ms_other", JSON.stringify(result.data.location));
-        this.$router.push("/");
-        return true;
-      });
-    },
-    /* 进入注册页面 */
-    goToRegisterPage() {
-      this.$router.push("/auth/register");
-    },
-    /* 进入密码忘记页面 */
-    goToResetPwdPage() {
-      this.$router.push("/auth/reset");
-    },
-  },
-};
+function submitForm() {
+  loginRef.value.validate(async (valid) => {
+    if (!valid) {
+      proxy.$eMessage.error("请输入账号和密码");
+      console.log("error submit!!");
+      return false;
+    }
+    const { data: result } = await proxy.$http.post("auth/login", loginForm.value);
+    if (result.code !== 100000) return proxy.$eMessage.error("登录失败");
+
+    proxy.$eMessage.success("登录成功");
+
+    // 存储在local storage中
+    localStorage.setItem("ms_username", loginForm.value.username);
+    localStorage.setItem("ms_id", loginForm.value.id);
+    localStorage.setItem("ms_other", JSON.stringify(result.data.location));
+    router.push("/");
+    return true;
+  });
+}
+
+/* 进入注册页面 */
+function goToRegisterPage() {
+  router.push("/auth/register");
+}
+
+/* 进入密码忘记页面 */
+function goToResetPwdPage() {
+  router.push("/auth/reset");
+}
 </script>
 
 <style scoped>

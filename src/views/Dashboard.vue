@@ -293,12 +293,10 @@ Lifecycle: 事件方法和生命周期
 */
 onBeforeMount(() => {
   getAllInfo();
-  // 监听事件总线的某一个值
-  $mitt.on("dynamicURLChange", handleDynamicURLChange);
+  $mitt.on("dynamicURLChange", handleDynamicURLChange); // 监听事件总线的某一个值
 });
 onBeforeUnmount(() => {
-  // 取消监听
-  offEvent("dynamicURLChange", handleDynamicURLChange);
+  $mitt.off("dynamicURLChange", handleDynamicURLChange); // 取消监听
 });
 // 当点击"系统首页", 加载dashboard页面的时候, 该函数被调用
 onActivated(() => {
