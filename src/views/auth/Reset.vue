@@ -10,21 +10,21 @@
           </el-button>
         </div>
       </div>
-      <el-form :model="param" :rules="rules" ref="resetPassword" label-width="0px" class="ms-content">
+      <el-form :model="resetForm" :rules="rules" ref="resetPasswordRef" label-width="0px" class="ms-content">
         <el-form-item prop="email" class="custom-form-item">
-          <el-input v-model="param.email" placeholder="请输入邮箱"></el-input>
+          <el-input v-model="resetForm.email" placeholder="请输入邮箱"></el-input>
           <div class="reset-send-code" @click="sendVerifyCode">发送验证码</div>
         </el-form-item>
 
         <el-form-item prop="verifyCode" class="custom-form-item">
-          <el-input v-model="param.verifyCode" placeholder="请输入邮箱验证码"></el-input>
+          <el-input v-model="resetForm.verifyCode" placeholder="请输入邮箱验证码"></el-input>
         </el-form-item>
 
         <el-form-item prop="newPassword" class="custom-form-item">
-          <el-input type="password" v-model="param.newPassword" placeholder="请输入新密码"></el-input>
+          <el-input type="password" v-model="resetForm.newPassword" placeholder="请输入新密码"></el-input>
         </el-form-item>
         <el-form-item prop="confirmPassword" class="custom-form-item">
-          <el-input type="password" v-model="param.confirmPassword" placeholder="请确认新密码"></el-input>
+          <el-input type="password" v-model="resetForm.confirmPassword" placeholder="请确认新密码"></el-input>
         </el-form-item>
         <div class="reset-password-btn">
           <el-button type="primary" @click="resetPassword">确认重置密码</el-button>
@@ -35,58 +35,60 @@
   </div>
 </template>
 
-<script>
-export default {
-  data: function () {
-    return {
-      param: {
-        email: "",
-        verifyCode: "",
-        newPassword: "",
-        confirmPassword: "",
-      },
-      rules: {
-        email: [{ required: true, message: "请输入邮箱", trigger: "blur" }],
-        verifyCode: [{ required: true, message: "请输入邮箱验证码", trigger: "blur" }],
-        newPassword: [{ required: true, message: "请输入新密码", trigger: "blur" }],
-        confirmPassword: [
-          { required: true, message: "请确认新密码", trigger: "blur" },
-          {
-            validator: (rule, value, callback) => {
-              if (value === this.param.newPassword) {
-                callback();
-              } else {
-                callback(new Error("两次输入的密码不一致"));
-              }
-            },
-            trigger: "blur",
-          },
-        ],
-      },
-    };
-  },
-  methods: {
-    resetPassword() {
-      this.$refs.resetPassword.validate((valid) => {
-        if (valid) {
-          // 处理重置密码逻辑，可以在这里提交新密码
-          $eMessage.success("重置密码成功");
-          this.$router.push("/auth/login"); // 重置密码成功后跳转到登录页
+<script setup name="reset">
+import { ref, computed, watch, onBeforeMount, getCurrentInstance } from "vue";
+import { useStore } from "vuex";
+import { useRouter, useRoute } from "vue-router";
+import provinceInfo from "@/data/province";
+
+// 全局变量
+const { proxy } = getCurrentInstance();
+const router = useRouter();
+
+const resetForm = ref({
+  email: "",
+  verifyCode: "",
+  newPassword: "",
+  confirmPassword: "",
+});
+const rules = ref({
+  email: [{ required: true, message: "请输入邮箱", trigger: "blur" }],
+  verifyCode: [{ required: true, message: "请输入邮箱验证码", trigger: "blur" }],
+  newPassword: [{ required: true, message: "请输入新密码", trigger: "blur" }],
+  confirmPassword: [
+    { required: true, message: "请确认新密码", trigger: "blur" },
+    {
+      validator: (rule, value, callback) => {
+        if (value === resetForm.value.newPassword) {
+          callback();
         } else {
-          $eMessage.error("请输入正确的新密码");
+          callback(new Error("两次输入的密码不一致"));
         }
-      });
+      },
+      trigger: "blur",
     },
-    /* 进入登录页面 */
-    goToLoginPage() {
-      this.$router.push("/auth/login");
-    },
-    /* 发送验证码 */
-    sendVerifyCode() {
-      this.param.verifyCode = "V2334";
-    },
-  },
-};
+  ],
+});
+
+function resetPassword() {
+  resetPasswordRef.value.validate((valid) => {
+    if (valid) {
+      // 处理重置密码逻辑，可以在这里提交新密码
+      proxy.$eMessage.success("重置密码成功");
+      router.push("/auth/login"); // 重置密码成功后跳转到登录页
+    } else {
+      proxy.$eMessage.error("请输入正确的新密码");
+    }
+  });
+}
+/* 进入登录页面 */
+function goToLoginPage() {
+  router.push("/auth/login");
+}
+/* 发送验证码 */
+function sendVerifyCode() {
+  resetForm.value.verifyCode = "V2334";
+}
 </script>
 
 <style scoped>

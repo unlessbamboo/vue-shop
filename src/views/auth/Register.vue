@@ -10,7 +10,7 @@
           </el-button>
         </div>
       </div>
-      <el-form :model="registerForm" :rules="rules" ref="register" label-width="0px" class="ms-content">
+      <el-form :model="registerForm" :rules="rules" ref="registerRef" label-width="0px" class="ms-content">
         <el-form-item prop="username" class="custom-form-item">
           <el-input v-model="registerForm.username" placeholder="请输入用户名"></el-input>
         </el-form-item>
@@ -67,133 +67,133 @@
   </div>
 </template>
 
-<script setupe name="register">
+<script setup name="register">
+import { ref, computed, watch, onBeforeMount, getCurrentInstance } from "vue";
+import { useStore } from "vuex";
+import { useRouter, useRoute } from "vue-router";
 import provinceInfo from "@/data/province";
 
-export default {
-  data: function () {
-    return {
-      registerForm: {
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        age: 16,
-        cityInfo: [], // 省市
-        city: "",
-        province: "",
-      },
-      rules: {
-        username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-        password: [{ required: true, message: "请输入密码", trigger: "blur" }],
-        email: [
-          { required: true, message: "请输入电子邮件", trigger: "blur" },
-          {
-            validator: (rule, value, callback) => {
-              // 使用正则表达式检查电子邮件格式
-              const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/;
-              if (emailPattern.test(value)) {
-                callback();
-              } else {
-                callback(new Error("请输入有效的电子邮件地址"));
-              }
-            },
-            trigger: "blur",
-          },
-        ],
-        confirmPassword: [
-          { required: true, message: "请确认密码", trigger: "blur" },
-          {
-            validator: (rule, value, callback) => {
-              if (value === this.registerForm.password) {
-                callback();
-              } else {
-                callback(new Error("两次输入的密码不一致"));
-              }
-            },
-            trigger: "blur",
-          },
-        ],
-        age: [
-          {
-            required: true,
-            message: "请输入年龄",
-            trigger: "blur",
-            type: "number",
-            transform: (value) => {
-              const newValue = value !== "" ? Number(value) : 0;
-              if (Number.isFinite(newValue)) {
-                this.registerForm.age = newValue;
-              }
-              return newValue;
-            },
-          },
-        ],
-      },
-    };
-  },
-  methods: {
-    submitForm() {
-      this.$refs.register.validate(async (valid) => {
-        if (!valid) {
-          $eMessage.error("请输入正确的账号和密码");
-          return false;
+// 全局变量
+const { proxy } = getCurrentInstance();
+const router = useRouter();
+
+const registerForm = ref({
+  username: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  age: 16,
+  cityInfo: [], // 省市
+  city: "",
+  province: "",
+});
+const rules = ref({
+  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  password: [{ required: true, message: "请输入密码", trigger: "blur" }],
+  email: [
+    { required: true, message: "请输入电子邮件", trigger: "blur" },
+    {
+      validator: (rule, value, callback) => {
+        // 使用正则表达式检查电子邮件格式
+        const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/;
+        if (emailPattern.test(value)) {
+          callback();
+        } else {
+          callback(new Error("请输入有效的电子邮件地址"));
         }
-        this.registerForm.age = Number(this.registerForm.age);
-
-        const { data: result } = await this.$http.post("auth/register", this.registerForm);
-        if (result.code !== 100000) return $eMessage.error(result.msg || "注册失败");
-
-        // 注册逻辑，可以在这里处理用户的注册信息
-        $eMessage.success("注册成功");
-        this.$router.push("/auth/login"); // 注册成功后跳转到登录页
-        return true;
-      });
+      },
+      trigger: "blur",
     },
-    /* 进入登录页面 */
-    goToLoginPage() {
-      this.$router.push("/auth/login");
+  ],
+  confirmPassword: [
+    { required: true, message: "请确认密码", trigger: "blur" },
+    {
+      validator: (rule, value, callback) => {
+        if (value === registerForm.value.password) {
+          callback();
+        } else {
+          callback(new Error("两次输入的密码不一致"));
+        }
+      },
+      trigger: "blur",
     },
-    // 注意, 这种回调函数报错, 在控制台中只可能看到如下错误: Error in v-on handler
-    onCityChange() {
-      if (this.registerForm.cityInfo.length < 2) {
-        // 选择省信息
-        this.registerForm.province = "";
-        this.registerForm.city = "";
-      } else {
-        // 选择省和市
-        this.twoLevelProvinceInfo.map((item) => {
-          if (item.value === this.registerForm.cityInfo[0]) {
-            this.registerForm.province = item.label;
-            item.children.map((subItem) => {
-              if (subItem.value === this.registerForm.cityInfo[1]) {
-                this.registerForm.city = subItem.label;
-              }
-            });
+  ],
+  age: [
+    {
+      required: true,
+      message: "请输入年龄",
+      trigger: "blur",
+      type: "number",
+      transform: (value) => {
+        const newValue = value !== "" ? Number(value) : 0;
+        if (Number.isFinite(newValue)) {
+          registerForm.value.age = newValue;
+        }
+        return newValue;
+      },
+    },
+  ],
+});
+const registerRef = ref(null);
+
+function submitForm() {
+  registerRef.value.validate(async (valid) => {
+    if (!valid) {
+      proxy.$eMessage.error("请输入正确的账号和密码");
+      return false;
+    }
+    registerForm.value.age = Number(registerForm.value.age);
+
+    const { data: result } = await proxy.$http.post("auth/register", registerForm.value);
+    if (result.code !== 100000) return proxy.$eMessage.error(result.msg || "注册失败");
+
+    // 注册逻辑，可以在这里处理用户的注册信息
+    proxy.$eMessage.success("注册成功");
+    router.push("/auth/login"); // 注册成功后跳转到登录页
+    return true;
+  });
+}
+/* 进入登录页面 */
+function goToLoginPage() {
+  router.push("/auth/login");
+}
+// 注意, 这种回调函数报错, 在控制台中只可能看到如下错误: Error in v-on handler
+function onCityChange() {
+  if (registerForm.value.cityInfo.length < 2) {
+    // 选择省信息
+    registerForm.value.province = "";
+    registerForm.value.city = "";
+  } else {
+    // 选择省和市
+    twoLevelProvinceInfo.value.map((item) => {
+      if (item.value === registerForm.value.cityInfo[0]) {
+        registerForm.value.province = item.label;
+        item.children.map((subItem) => {
+          if (subItem.value === registerForm.value.cityInfo[1]) {
+            registerForm.value.city = subItem.label;
           }
         });
       }
-    },
-  },
-  computed: {
-    twoLevelProvinceInfo() {
-      return provinceInfo.map((province) => {
-        return {
-          value: province.value,
-          label: province.label,
-          children: province.children
-            ? province.children.map((city) => {
-                return {
-                  value: city.value,
-                  label: city.label,
-                };
-              })
-            : null,
-        };
-      });
-    },
-  },
-};
+    });
+  }
+}
+
+const twoLevelProvinceInfo = computed(() => {
+  return provinceInfo.map((province) => {
+    return {
+      value: province.value,
+      label: province.label,
+      children: province.children
+        ? province.children.map((city) => {
+            return {
+              value: city.value,
+              label: city.label,
+            };
+          })
+        : null,
+    };
+  });
+});
 </script>
 
 <style scoped>
