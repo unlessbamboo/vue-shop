@@ -13,14 +13,14 @@
         <el-tab-pane :label="`未读消息(${messageStatistics.unread})`" name="first">
           <el-table :data="unreadMessages" :show-header="false" style="width: 100%">
             <el-table-column>
-              <template slot-scope="scope">
+              <template v-slot:default="scope">
                 <span class="message-title">{{ scope.row.desc }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="publish_at" width="180"></el-table-column>
 
             <el-table-column width="120">
-              <template slot-scope="scope">
+              <template v-slot:default="scope">
                 <el-button size="small" @click="handleRead(scope.row.id)">标为已读</el-button>
               </template>
             </el-table-column>
@@ -37,7 +37,7 @@
               :total="total"
               :page-sizes="[5, 10, 20, 50, 100]"
               :page-size="pageSize"
-              :current-page="page"
+              :current-page="currentPage"
               @size-change="handleUnreadSizeChange"
               @current-change="handleUnreadPageChange"></el-pagination>
           </div>
@@ -47,13 +47,13 @@
           <template v-if="message === 'second'">
             <el-table :data="readMessages" :show-header="false" style="width: 100%">
               <el-table-column>
-                <template slot-scope="scope">
+                <template v-slot:default="scope">
                   <span class="message-title">{{ scope.row.desc }}</span>
                 </template>
               </el-table-column>
               <el-table-column prop="publish_at" width="150"></el-table-column>
               <el-table-column width="120">
-                <template slot-scope="scope">
+                <template v-slot:default="scope">
                   <el-button type="danger" @click="handleDel(scope.row.id)">删除</el-button>
                 </template>
               </el-table-column>
@@ -65,7 +65,7 @@
               <!-- 分页组件 -->
               <el-pagination
                 v-if="readMessages.length > 0"
-                :current-page="page"
+                :current-page="currentPage"
                 :page-size="pageSize"
                 layout="total, prev, pager, next"
                 :total="total"
@@ -79,13 +79,13 @@
           <template v-if="message === 'third'">
             <el-table :data="recycleMessages" :show-header="false" style="width: 100%">
               <el-table-column>
-                <template slot-scope="scope">
+                <template v-slot:default="scope">
                   <span class="message-title">{{ scope.row.desc }}</span>
                 </template>
               </el-table-column>
               <el-table-column prop="publish_at" width="150"></el-table-column>
               <el-table-column width="120">
-                <template slot-scope="scope">
+                <template v-slot:default="scope">
                   <el-button @click="handleRestore(scope.row.id)">还原</el-button>
                 </template>
               </el-table-column>
@@ -98,7 +98,7 @@
               <!-- 分页组件 -->
               <el-pagination
                 v-if="recycleMessages.length > 0"
-                :current-page="page"
+                :current-page="currentPage"
                 :page-size="pageSize"
                 layout="prev, pager, next"
                 :total="total"
@@ -112,172 +112,171 @@
   </div>
 </template>
 
-<script>
+<script setup name="tabs">
+import { ref, onMounted, getCurrentInstance } from "vue";
+import { ElMessageBox } from "element-plus";
+
 import SimpleApi from "@/api/simpleApi";
-import requestMixin from "@/mixins/requestMixin";
+import Axiosapi from "@/utils/request";
+import { checkRequestResult } from "@/mixins/requestCommon";
 
-export default {
-  name: "tabs",
-  mixins: [requestMixin],
-  data() {
-    return {
-      message: "first",
-      showHeader: false,
-      messageStatistics: {},
-      unreadMessages: [],
-      readMessages: [],
-      recycleMessages: [],
-      pageSize: 5, // 每页默认条数
-      page: 1, // 当前页码
-      total: 0,
-    };
-  },
-  methods: {
-    async updateMessageStatus(messageId, messageStatus) {
-      const { data: result } = await this.$http.put(`messages/updateone/${messageId}`, {
-        new_status: messageStatus,
-      });
-      if (!checkRequestResult(result, "更新系统消息状态失败!")) {
-        return;
-      }
-    },
-    // 标记为已读
-    async handleRead(id) {
-      await this.updateMessageStatus(id, 3);
-      this.getMessageStatistics();
-      this.getUnreadMessages();
-    },
-    // 删除
-    async handleDel(id) {
-      await this.updateMessageStatus(id, 4);
-      this.getMessageStatistics();
-      this.getReadMessages();
-    },
-    // 还原
-    async handleRestore(id) {
-      await this.updateMessageStatus(id, 3);
-      this.getMessageStatistics();
-      this.getRecycleMessages();
-    },
-    async handleUpdateAll(newStatus) {
-      var oldStatus = 2;
-      if (newStatus == 3) {
-        oldStatus = 2;
-      } else if (newStatus == 4) {
-        oldStatus = 3;
-      } else {
-        oldStatus = 4;
-      }
+// 全局变量
+const { proxy } = getCurrentInstance();
 
-      const { data: result } = await this.$http.put(`messages/updateall`, {
-        current_status: oldStatus,
-        new_status: newStatus,
-      });
-      if (!checkRequestResult(result, "更新系统消息状态失败!")) {
-        return;
-      }
+const message = ref("first");
+const showHeader = ref(false);
+const messageStatistics = ref({});
+const unreadMessages = ref([]);
+const readMessages = ref([]);
+const recycleMessages = ref([]);
+const pageSize = ref(5); // 每页默认条数
+const currentPage = ref(1); // 当前页码
+const total = ref(0);
 
-      if (newStatus == 3) {
-        this.getUnreadMessages();
-      } else if (newStatus == 4) {
-        this.getReadMessages();
-      } else {
-        this.getRecycleMessages();
-      }
-      this.getMessageStatistics();
-    },
-    // 处理分页变化
-    handleUnreadPageChange(page) {
-      this.page = page;
-      this.getUnreadMessages();
-    },
-    handleUnreadSizeChange(pageSize) {
-      this.pageSize = pageSize;
-      this.getUnreadMessages();
-    },
-    handleReadPageChange(page) {
-      this.readPage = page;
-      this.getReadMessages();
-    },
-    handleReadSizeChange(pageSize) {
-      this.pageSize = pageSize;
-      this.getReadMessages();
-    },
-    handleRecyclePageChange(page) {
-      this.recyclePage = page;
-      this.getCycleMessages();
-    },
-    handleRecycleSizeChange(pageSize) {
-      this.pageSize = pageSize;
-      this.getRecycleMessages();
-    },
+async function updateMessageStatus(messageId, messageStatus) {
+  const { data: result } = await proxy.$http.put(`messages/updateone/${messageId}`, {
+    new_status: messageStatus,
+  });
+  if (!checkRequestResult(result, "更新系统消息状态失败!")) {
+    return;
+  }
+}
+// 标记为已读
+async function handleRead(id) {
+  await updateMessageStatus(id, 3);
+  getMessageStatistics();
+  getUnreadMessages();
+}
+// 删除
+async function handleDel(id) {
+  await updateMessageStatus(id, 4);
+  getMessageStatistics();
+  getReadMessages();
+}
+// 还原
+async function handleRestore(id) {
+  await updateMessageStatus(id, 3);
+  getMessageStatistics();
+  getRecycleMessages();
+}
+async function handleUpdateAll(newStatus) {
+  var oldStatus = 2;
+  if (newStatus == 3) {
+    oldStatus = 2;
+  } else if (newStatus == 4) {
+    oldStatus = 3;
+  } else {
+    oldStatus = 4;
+  }
 
-    // 点击tab时触发
-    handleTabClick(tab, event) {
-      if (tab.name == "first") {
-        this.getUnreadMessages();
-      } else if (tab.name == "second") {
-        this.getReadMessages();
-      } else {
-        this.getRecycleMessages();
-      }
-    },
+  const { data: result } = await proxy.$http.put(`messages/updateall`, {
+    current_status: oldStatus,
+    new_status: newStatus,
+  });
+  if (!checkRequestResult(result, "更新系统消息状态失败!")) {
+    return;
+  }
 
-    // 获取消息简要统计信息
-    async getMessageStatistics() {
-      const { data: result } = await SimpleApi.fetchMessageStatistics();
-      if (!checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
-        return;
-      }
-      this.messageStatistics = result.data;
+  if (newStatus == 3) {
+    getUnreadMessages();
+  } else if (newStatus == 4) {
+    getReadMessages();
+  } else {
+    getRecycleMessages();
+  }
+  getMessageStatistics();
+}
+// 处理分页变化
+function handleUnreadPageChange(page) {
+  currentPage.value = page;
+  getUnreadMessages();
+}
+function handleUnreadSizeChange(_pageSize) {
+  pageSize.value = _pageSize;
+  getUnreadMessages();
+}
+function handleReadPageChange(page) {
+  currentPage.value = page;
+  getReadMessages();
+}
+function handleReadSizeChange(_pageSize) {
+  pageSize.value = _pageSize;
+  getReadMessages();
+}
+function handleRecyclePageChange(page) {
+  currentPage.value = page;
+  getRecycleMessages();
+}
+function handleRecycleSizeChange(_pageSize) {
+  pageSize.value = _pageSize;
+  getRecycleMessages();
+}
+
+// 点击tab时触发
+function handleTabClick(tab, event) {
+  if (tab.paneName == "first") {
+    getUnreadMessages();
+  } else if (tab.paneName == "second") {
+    getReadMessages();
+  } else {
+    getRecycleMessages();
+  }
+}
+
+// 获取消息简要统计信息
+async function getMessageStatistics() {
+  const { data: result } = await SimpleApi.fetchMessageStatistics();
+  if (!checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
+    return;
+  }
+  messageStatistics.value = result.data;
+}
+// 获取指定状态的消息列表
+async function getMessagesByStatus(messageStatus) {
+  const { data: result } = await proxy.$http.get("messages", {
+    params: {
+      page: currentPage.value,
+      pagesize: pageSize.value,
+      status: messageStatus,
     },
-    // 获取指定状态的消息列表
-    async getMessagesByStatus(messageStatus) {
-      const { data: result } = await this.$http.get("messages", {
-        params: {
-          page: this.page,
-          pagesize: this.pageSize,
-          status: messageStatus,
-        },
-      });
-      if (!checkRequestResult(result, "获取未读系统消息列表失败!")) {
-        return null;
-      }
-      this.total = result.pager.total;
-      this.page = result.pager.page;
-      this.pageSize = result.pager.pageSize;
-      return result.data;
-    },
-    // 获取未读消息列表
-    async getUnreadMessages() {
-      let messages = await this.getMessagesByStatus(2);
-      if (messages) {
-        this.unreadMessages = messages;
-      }
-    },
-    // 获取已读消息列表
-    async getReadMessages() {
-      let messages = await this.getMessagesByStatus(3);
-      if (messages) {
-        this.readMessages = messages;
-      }
-    },
-    // 获取回收站消息列表
-    async getRecycleMessages() {
-      let messages = await this.getMessagesByStatus(4);
-      if (messages) {
-        this.recycleMessages = messages;
-      }
-    },
-  },
-  created() {
-    // 消息简要信息
-    this.getMessageStatistics();
-    // 获取消息列表
-    this.getUnreadMessages();
-  },
-  computed: {},
-};
+  });
+  if (!checkRequestResult(result, "获取未读系统消息列表失败!")) {
+    return null;
+  }
+  total.value = result.pager.total;
+  currentPage.value = result.pager.page;
+  pageSize.value = result.pager.pageSize;
+  return result.data;
+}
+// 获取未读消息列表
+async function getUnreadMessages() {
+  let messages = await getMessagesByStatus(2);
+  if (messages) {
+    unreadMessages.value = messages;
+  }
+}
+// 获取已读消息列表
+async function getReadMessages() {
+  let messages = await getMessagesByStatus(3);
+  if (messages) {
+    readMessages.value = messages;
+  }
+}
+// 获取回收站消息列表
+async function getRecycleMessages() {
+  let messages = await getMessagesByStatus(4);
+  if (messages) {
+    recycleMessages.value = messages;
+  }
+}
+
+// @function: 生命周期
+onMounted(() => {
+  // 消息简要信息
+  getMessageStatistics();
+  // 获取消息列表
+  getUnreadMessages();
+});
 </script>
 
 <style>

@@ -63,7 +63,7 @@
             <el-col :span="8">
               <el-card shadow="hover" :body-style="{ padding: '0px' }">
                 <div class="grid-content grid-con-1">
-                  <i class="el-icon-lx-people grid-con-icon"></i>
+                  <Icon icon="User" class="grid-con-icon" />
                   <div class="grid-cont-right">
                     <div class="grid-num">{{ statisticsInfo.accessNum }}</div>
                     <div>用户访问量</div>
@@ -74,7 +74,7 @@
             <el-col :span="8">
               <el-card shadow="hover" :body-style="{ padding: '0px' }">
                 <div class="grid-content grid-con-2">
-                  <i class="el-icon-lx-notice grid-con-icon"></i>
+                  <Icon icon="Bell" class="grid-con-icon" />
                   <div class="grid-cont-right">
                     <div class="grid-num">{{ statisticsInfo.msgNum }}</div>
                     <div>系统消息</div>
@@ -85,7 +85,7 @@
             <el-col :span="8">
               <el-card shadow="hover" :body-style="{ padding: '0px' }">
                 <div class="grid-content grid-con-3">
-                  <i class="el-icon-lx-goods grid-con-icon"></i>
+                  <Icon icon="Shop" class="grid-con-icon" />
                   <div class="grid-cont-right">
                     <div class="grid-num">{{ statisticsInfo.orderNum }}</div>
                     <div>订单数</div>
@@ -94,6 +94,7 @@
               </el-card>
             </el-col>
           </el-row>
+
           <el-card shadow="hover" style="height: 403px" class="todo-card-container">
             <template v-slot:header>
               <div class="clearfix">
@@ -107,13 +108,12 @@
               <el-table-column width="40">
                 <template v-slot:default="scope">
                   <el-checkbox
-                    :value="scope.row.status == 3"
+                    :model-value="scope.row.status == 3"
                     @change="handleTodoCheckboxChange(scope.row)"></el-checkbox>
                 </template>
               </el-table-column>
               <el-table-column>
                 <template v-slot:default="scope">
-                  <!-- 这里使用方法就是为了调试, 实际问题: 类型不一致, 变为字符串了, 这里提供了一种debug方法 -->
                   <div class="todo-item" :class="{ 'todo-item-del': isTodoItemDel(scope.row.status) }">
                     {{ scope.row.title }}
                   </div>
@@ -123,13 +123,13 @@
                 <template v-slot:default="scope">
                   <el-button
                     type="primary"
-                    icon="el-icon-edit"
+                    :icon="Edit"
                     size="small"
                     circle
                     @click="handleTodoEdit(scope.row.id, scope.row)"></el-button>
                   <el-button
                     type="danger"
-                    icon="el-icon-delete"
+                    :icon="Delete"
                     size="small"
                     circle
                     @click="handleTodoDelete(scope.row.id, scope.row)"></el-button>
@@ -161,25 +161,25 @@
         <!-- a. 柱状图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <v-chart :option="salesData.options" theme="ovilia-green" ref="barRef" class="echart" autoresize />
+            <v-chart v-if="salesData.options" :options="salesData.options" height="300px" />
           </el-card>
         </el-col>
         <!-- 折线图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <v-chart ref="lineRef" class="echart" :options="salesData.options2" />
+            <v-chart v-if="salesData.options2" :options="salesData.options2" height="300px" />
           </el-card>
         </el-col>
         <!-- 饼状图, 注意, 数据本身就有一定的格式要求 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <v-chart ref="pieRef" class="echart" options="salesData.options3" />
+            <v-chart v-if="salesData.options3" :options="salesData.options3" height="300px" />
           </el-card>
         </el-col>
         <!-- 环形图 -->
         <el-col :span="12">
           <el-card shadow="hover">
-            <v-chart ref="ringRef" class="echart" :options="salesData.options4" />
+            <v-chart v-if="salesData.options4" :options="salesData.options4" height="300px" />
           </el-card>
         </el-col>
       </el-row>
@@ -241,18 +241,20 @@ import {
   computed,
   watch,
 } from "vue";
+import * as echarts from "echarts";
 import { ElMessageBox } from "element-plus";
+import { Delete, Edit } from "@element-plus/icons-vue";
 import "@/utils/chart";
-import VChart, { THEME_KEY } from "vue-echarts";
 
 import SimpleApi from "@/api/simpleApi";
 import Axiosapi from "@/utils/request";
+import Schart2EchartApi from "@/utils/schart2echart";
 import { checkRequestResult } from "@/mixins/requestCommon";
 import CommonDateHandler from "@/utils/date";
+import vChart from "@/components/Echarts.vue"; // 自动转为v-tags
 
 // 全局变量
 const { proxy } = getCurrentInstance();
-const $mitt = proxy.$mitt;
 
 /*
 页面: 管理后台控制台首页
@@ -275,7 +277,7 @@ const todoHandleId = ref(0);
 const todoEditForm = ref({});
 const todoAddDialogVisible = ref(false);
 const todoAddForm = ref({ title: "", desc: "", priority: 3 });
-const salesData = ref({ options: {}, options2: {}, options3: {}, options4: {} });
+const salesData = ref({});
 const statisticsInfo = ref({});
 
 /*
@@ -293,10 +295,10 @@ Lifecycle: 事件方法和生命周期
 */
 onBeforeMount(() => {
   getAllInfo();
-  $mitt.on("dynamicURLChange", handleDynamicURLChange); // 监听事件总线的某一个值
+  proxy.$mitt.on("dynamicURLChange", handleDynamicURLChange); // 监听事件总线的某一个值
 });
 onBeforeUnmount(() => {
-  $mitt.off("dynamicURLChange", handleDynamicURLChange); // 取消监听
+  proxy.$mitt.off("dynamicURLChange", handleDynamicURLChange); // 取消监听
 });
 // 当点击"系统首页", 加载dashboard页面的时候, 该函数被调用
 onActivated(() => {
@@ -395,7 +397,7 @@ async function saveTodoEdit() {
   }
   todoEditDialogVisible.value = false;
   getTodoListInfos();
-  $eMessage.success("更新todo信息成功");
+  proxy.$eMessage.success("更新todo信息成功");
 }
 // 在勾选或取消勾选待办实现的时候触发回调
 async function handleTodoCheckboxChange(row) {
@@ -407,7 +409,7 @@ async function handleTodoCheckboxChange(row) {
   }
 
   // 这种数组内的数据刷新不会触发自动刷新, 需要手动处理(注意status的类型)
-  this.$set(row, "status", status);
+  row.status = status;
 }
 // 添加新的代办事项
 function handleTodoAdd() {
@@ -416,27 +418,27 @@ function handleTodoAdd() {
 }
 async function saveTodoAdd() {
   // 发起修改用户信息的数据请求
-  const { data: result } = await $http.post("other/todos", todoAddForm.value);
+  const { data: result } = await proxy.$http.post("other/todos", todoAddForm.value);
   if (!checkRequestResult(result, "添加新待办事项失败")) {
     return;
   }
   todoAddDialogVisible.value = false;
   getTodoListInfos();
-  $eMessage.success("更新todo信息成功");
+  proxy.$eMessage.success("更新todo信息成功");
 }
 // 批量更新待办事项状态
 async function updateTodoStatus(status) {
-  const { data: result } = await $http.put(`other/todos/status/${status}`);
+  const { data: result } = await proxy.$http.put(`other/todos/status/${status}`);
   if (!checkRequestResult(result, "添加新待办事项失败")) {
     return;
   }
 }
-function handleTodoMulComplete() {
-  updateTodoStatus(3);
+async function handleTodoMulComplete() {
+  await updateTodoStatus(3); // 注意, 需要等待已经成功更新了才能继续调用后续的函数
   getTodoListInfos();
 }
-function handleTodoMulDelete() {
-  updateTodoStatus(4);
+async function handleTodoMulDelete() {
+  await updateTodoStatus(4);
   getTodoListInfos();
 }
 
@@ -457,7 +459,15 @@ function getRecentSalesData() {
       if (!checkRequestResult(_rspInfo, "获取最近一周各品类销售数据异常")) {
         return;
       }
-      salesData.value = _rspInfo.data;
+
+      // 临时代码, 将schart数据转为v-chart
+      var infos = {
+        options: Schart2EchartApi.s2eOfBar(_rspInfo.data.options),
+        options2: Schart2EchartApi.s2eOfLineStack(_rspInfo.data.options2),
+        options3: Schart2EchartApi.s2eOfPieSimple(_rspInfo.data.options3),
+        options4: Schart2EchartApi.s2eOfPieDoughnut(_rspInfo.data.options4),
+      };
+      salesData.value = infos;
     })
     .catch((error) => {
       console.log(error);

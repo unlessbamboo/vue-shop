@@ -6,7 +6,7 @@
         <div class="ms-login-title-goto">
           <el-button class="ms-login-title-goto-btn" type="primary" link @click="goToRegisterPage">
             前往注册
-            <font-awesome-icon icon="fa-solid fa-chevron-right" />
+            <Icon icon="ArrowRight" class="shopIcon" style="width: 20px" />
           </el-button>
         </div>
       </div>

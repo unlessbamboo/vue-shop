@@ -6,12 +6,12 @@ const Schart2EchartApi = {
   // @function: 柱状图
   s2eOfBar(options) {
     return {
-      textStyle: {
-        // 字体信息
-      },
       // 标题组件
       title: {
         text: options.title.text,
+        textStyle: {
+          fontSize: 14,
+        },
       },
       // 提示框组件: show-是否显示提示框, trigger-触发类型
       tooltip: {
@@ -29,6 +29,12 @@ const Schart2EchartApi = {
         },
       },
       yAxis: {},
+      toolbox: {
+        // 保存图片
+        feature: {
+          saveAsImage: {},
+        },
+      },
       series: options.datasets.map((dataset) => ({
         name: dataset.label,
         type: "bar",
@@ -42,6 +48,9 @@ const Schart2EchartApi = {
     return {
       title: {
         text: options.title.text,
+        textStyle: {
+          fontSize: 12,
+        },
       },
       tooltip: {
         trigger: "axis",
@@ -49,10 +58,20 @@ const Schart2EchartApi = {
       legend: {
         data: options.datasets.map((dataset) => dataset.label),
       },
+      toolbox: {
+        // 保存图片
+        feature: {
+          saveAsImage: {},
+        },
+      },
       xAxis: {
+        type: "category",
+        boundaryGap: false,
         data: options.labels,
       },
-      yAxis: {},
+      yAxis: {
+        type: "value",
+      },
       series: options.datasets.map((dataset) => ({
         name: dataset.label,
         type: "line", // 注意这里的类型是 'line'
@@ -78,9 +97,19 @@ const Schart2EchartApi = {
     return {
       title: {
         text: schartData.title.text,
+        textStyle: {
+          fontSize: 12,
+        },
+        right: 20,
       },
       tooltip: {
         trigger: "item",
+      },
+      toolbox: {
+        // 保存图片
+        feature: {
+          saveAsImage: {},
+        },
       },
       legend: {
         orient: schartData.legend.position === "left" ? "vertical" : "horizontal",
@@ -114,13 +143,22 @@ const Schart2EchartApi = {
     return {
       title: {
         text: schartData.title.text,
+        textStyle: {
+          fontSize: 14,
+        },
       },
       tooltip: {
         trigger: "item",
       },
       legend: {
         orient: "horizontal",
-        bottom: schartData.legend.bottom,
+        bottom: 10, // 一般固定, 不要动态设置
+      },
+      toolbox: {
+        // 保存图片
+        feature: {
+          saveAsImage: {},
+        },
       },
       backgroundColor: schartData.bgColor,
       series: [

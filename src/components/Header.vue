@@ -157,6 +157,7 @@ function handleChangeHost(cmd) {
   }
 
   if (newBaseHost == oldBaseHost) {
+    proxy.$eMessage.success("后端服务地址相同, 无需再次切换");
     return;
   }
 
@@ -168,7 +169,7 @@ function handleChangeHost(cmd) {
 // 全屏事件, 下面的代码是通用方式(chatgpt也是这样写的)
 function handleFullScreen() {
   let element = document.documentElement;
-  if (this.fullscreen) {
+  if (fullscreen.value) {
     if (document.exitFullscreen) {
       document.exitFullscreen();
     } else if (document.webkitCancelFullScreen) {
@@ -190,7 +191,7 @@ function handleFullScreen() {
       element.msRequestFullscreen();
     }
   }
-  this.fullscreen = !this.fullscreen;
+  fullscreen.value = !fullscreen.value;
 }
 
 onMounted(() => {
@@ -253,15 +254,19 @@ onMounted(() => {
 }
 
 .btn-myhome {
-  display: flex;
   margin-right: 15px;
   font-size: 24px;
+}
+
+.btn-myhome:deep(:focus-visible) {
+  outline: none; /* 解决el-dropdown鼠标hover时有边框问题 */
 }
 
 .btn-bell,
 .btn-fullscreen,
 .btn-dropdown,
 .btn-myhome {
+  display: flex;
   position: relative;
   width: 30px;
   height: 30px;
@@ -281,6 +286,10 @@ onMounted(() => {
 }
 .btn-bell .el-icon-bell {
   color: #fff;
+}
+/* 居中 */
+.btn-bell .el-tooltip__trigger {
+  display: flex;
 }
 
 .user-name {
