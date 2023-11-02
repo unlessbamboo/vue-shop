@@ -12,7 +12,7 @@
         <el-table-column label="权限名称" prop="name"></el-table-column>
         <el-table-column label="路径" prop="path"></el-table-column>
         <el-table-column label="权限等级" prop="level">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <el-tag v-if="scope.row.level === '0'">一级</el-tag>
             <el-tag type="success" v-else-if="scope.row.level === '1'">二级</el-tag>
             <el-tag type="warning" v-else>三级</el-tag>
@@ -23,32 +23,29 @@
   </div>
 </template>
 
-<script>
+<script setup name="rights">
+import { reactive, ref, onMounted, toRefs, computed, getCurrentInstance } from "vue";
 import SimpleApi from "@/api/simpleApi";
-import requestMixin from "@/mixins/requestMixin";
+import { checkRequestResult } from "@/mixins/requestCommon";
 
-export default {
-  mixins: [requestMixin],
-  data() {
-    return {
-      // 权限列表
-      rightsList: [],
-    };
-  },
-  created() {
-    // 获取所有的权限
-    this.getRightsList();
-  },
-  methods: {
-    async getRightsList() {
-      const { data: result } = await this.$http.get("auth/permissions");
-      if (!checkRequestResult(result, "获取权限列表失败！")) {
-        return;
-      }
-      this.rightsList = result.data.infos;
-    },
-  },
-};
+// 全局变量
+const { proxy } = getCurrentInstance();
+
+const rightsList = ref([]); // 权限列表
+
+// @funtion: 生命周期
+onMounted(() => {
+  // 获取所有的权限
+  getRightsList();
+});
+
+async function getRightsList() {
+  const { data: result } = await proxy.$http.get("auth/permissions");
+  if (!checkRequestResult(result, "获取权限列表失败！")) {
+    return;
+  }
+  rightsList.value = result.data.infos;
+}
 </script>
 
 <style scoped></style>

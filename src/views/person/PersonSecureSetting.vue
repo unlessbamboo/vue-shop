@@ -2,14 +2,7 @@
   <div class="personSecureSettingContainer"></div>
 </template>
 
-<script>
-export default {
-  name: "PersonSecureSetting",
-  data() {
-    return {};
-  },
-};
-</script>
+<script setup name="PersonSecureSetting"></script>
 
 <style scope>
 .personSecureSettingContainer {

@@ -53,59 +53,49 @@
   </div>
 </template>
 
-<script>
+<script setup name="PersonSecureSetting">
+import { reactive, ref, onMounted, toRefs, computed, getCurrentInstance } from "vue";
+import avatarUrl from "@/assets/img/img.jpg"; // 默认头像地址，注意, 导入本地图片的格式
 import provinceInfo from "@/data/province";
 
-export default {
-  name: "PersonSecureSetting",
-  data() {
-    return {
-      formData: {
-        email: "",
-        nickname: "",
-        bio: "",
-        country: "china",
-        cityInfo: [],
-        province: "",
-        city: "",
-        address: "",
-        phone: "",
-      },
-      provinceInfo,
-      avatarUrl: require("@/assets/img/img.jpg"), // 默认头像地址，注意, 导入本地图片的格式
-    };
-  },
-  methods: {
-    handleChangeAvatar() {
-      // 处理更换头像的逻辑，根据实际情况实现
-    },
-    handleLocationChange(value) {
-      // 处理所在省市的选择变化，根据实际情况实现
-    },
-    // 注意, 这种回调函数报错, 在控制台中只可能看到如下错误: Error in v-on handler
-    onCityChange() {
-      if (this.formData.cityInfo.length < 2) {
-        // 选择省信息
-        this.formData.province = "";
-        this.formData.city = "";
-      } else {
-        // 选择省和市
-        this.provinceInfo.map((item) => {
-          if (item.value === this.formData.cityInfo[0]) {
-            this.formData.province = item.label;
-            item.children.map((subItem) => {
-              if (subItem.value === this.formData.cityInfo[1]) {
-                this.formData.city = subItem.label;
-              }
-            });
+const formData = ref({
+  email: "",
+  nickname: "",
+  bio: "",
+  country: "china",
+  cityInfo: [],
+  province: "",
+  city: "",
+  address: "",
+  phone: "",
+});
+function handleChangeAvatar() {
+  // 处理更换头像的逻辑，根据实际情况实现
+}
+function handleLocationChange(value) {
+  // 处理所在省市的选择变化，根据实际情况实现
+}
+// 注意, 这种回调函数报错, 在控制台中只可能看到如下错误: Error in v-on handler
+function onCityChange() {
+  if (formData.value.cityInfo.length < 2) {
+    // 选择省信息
+    formData.value.province = "";
+    formData.value.city = "";
+  } else {
+    // 选择省和市
+    this.provinceInfo.map((item) => {
+      if (item.value === formData.value.cityInfo[0]) {
+        formData.value.province = item.label;
+        item.children.map((subItem) => {
+          if (subItem.value === formData.value.cityInfo[1]) {
+            formData.value.city = subItem.label;
           }
         });
       }
-    },
-
-    submitPersonForm() {},
-  },
-};
+    });
+  }
+}
+function submitPersonForm() {}
 </script>
 
 <style scoped>

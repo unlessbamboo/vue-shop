@@ -30,30 +30,25 @@
   </div>
 </template>
 
-<script>
+<script setup name="personcenter">
+import { reactive, ref, onMounted, toRefs, computed, getCurrentInstance } from "vue";
+import SimpleApi from "@/api/simpleApi";
+import { checkRequestResult } from "@/mixins/requestCommon";
+
 import PersonBaseSetting from "./PersonBaseSetting.vue";
 import PersonSecureSetting from "./PersonSecureSetting.vue";
 
-export default {
-  components: {
-    PersonBaseSetting,
-    PersonSecureSetting,
-  },
-  data() {
-    return {
-      activePersonTab: "PersonBaseSetting", // 默认是基本设置
-    };
-  },
-  methods: {
-    personHandleSelect(key) {
-      if (key == "basic") {
-        this.activePersonTab = "PersonBaseSetting";
-      } else {
-        this.activePersonTab = "PersonSecureSetting";
-      }
-    },
-  },
-};
+// 全局变量
+const { proxy } = getCurrentInstance();
+const activePersonTab = ref("PersonBaseSetting"); // 默认是基本设置
+
+function personHandleSelect(key) {
+  if (key == "basic") {
+    activePersonTab.value = "PersonBaseSetting";
+  } else {
+    activePersonTab.value = "PersonSecureSetting";
+  }
+}
 </script>
 
 <style scope>

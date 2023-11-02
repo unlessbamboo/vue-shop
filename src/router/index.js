@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from "vue-router";
 const Home = () => import("@/views/Home.vue");
 const Dashboard = () => import("@/views/Dashboard.vue");
 
-const UserInfos = () => import("@/views/person/PersonInfos");
+const UserInfos = () => import("@/views/person/PersonInfos.vue");
 const PersonCenter = () => import("@/views/person/PersonCenter.vue");
 const Messages = () => import("@/views/Messages.vue");
 const Roles = () => import("@/views/power/Roles.vue");
@@ -42,12 +42,12 @@ const routes = [
     component: Home,
     meta: { title: "自述文件" },
     children: [
-      { path: "/dashboard", component: Dashboard, meta: { title: "系统首页" } },
+      { path: "dashboard", component: Dashboard, meta: { title: "系统首页" } },
 
       // 用户中心相关
-      { path: "/userinfos", component: UserInfos, meta: { title: "用户列表" } },
+      { path: "userinfos", component: UserInfos, meta: { title: "用户列表" } },
       {
-        path: "/user",
+        path: "user",
         component: GoodLayout,
         children: [
           { path: "", redirect: "userinfos" },
@@ -58,7 +58,7 @@ const routes = [
 
       // 权限相关
       {
-        path: "/power",
+        path: "power",
         component: GoodLayout,
         children: [
           { path: "", redirect: "roles" },
@@ -68,11 +68,11 @@ const routes = [
       },
 
       // 订单
-      { path: "/orders", component: Order, meta: { title: "订单列表" } },
+      { path: "orders", component: Order, meta: { title: "订单列表" } },
 
       // 商品信息
       {
-        path: "/goods",
+        path: "goods",
         component: GoodLayout,
         children: [
           { path: "", redirect: "list" },
@@ -83,19 +83,19 @@ const routes = [
         ],
       },
 
-      { path: "/form", component: BaseForm, meta: { title: "基本表单" } },
-      { path: "/goods", component: Goods, meta: { title: "商品列表" } },
-      { path: "/editor", component: VueEditor, meta: { title: "富文本编辑器" } },
-      { path: "/markdown", component: MarkDown, meta: { title: "arkdown编辑器" } },
-      { path: "/upload", component: Upload, meta: { title: "文件上传" } },
-      { path: "/task", component: Task, meta: { title: "工作流程" } },
-      { path: "/systeminfo", component: SystemInfo, meta: { title: "系统监控" } },
-      { path: "/icon", component: Icon, meta: { title: "自定义图标" } },
-      { path: "/i18n", component: I18n, meta: { title: "国际化" } },
-      { path: "/permission", component: Permission, meta: { title: "权限测试", permission: true } },
-      { path: "/404", component: NotFound, meta: { title: "404" } },
-      { path: "/403", component: Forbidden, meta: { title: "403" } },
-      { path: "/donate", component: Donate, meta: { title: "支持作者" } },
+      { path: "form", component: BaseForm, meta: { title: "基本表单" } },
+      { path: "goods", component: Goods, meta: { title: "商品列表" } },
+      { path: "editor", component: VueEditor, meta: { title: "富文本编辑器" } },
+      { path: "markdown", component: MarkDown, meta: { title: "arkdown编辑器" } },
+      { path: "upload", component: Upload, meta: { title: "文件上传" } },
+      { path: "task", component: Task, meta: { title: "工作流程" } },
+      { path: "systeminfo", component: SystemInfo, meta: { title: "系统监控" } },
+      { path: "icon", component: Icon, meta: { title: "自定义图标" } },
+      { path: "i18n", component: I18n, meta: { title: "国际化" } },
+      { path: "permission", component: Permission, meta: { title: "权限测试", permission: true } },
+      { path: "404", component: NotFound, meta: { title: "404" } },
+      { path: "403", component: Forbidden, meta: { title: "403" } },
+      { path: "donate", component: Donate, meta: { title: "支持作者" } },
     ],
   },
   {

@@ -51,7 +51,7 @@
               <Icon icon="Bell" class="curIcon" />
             </router-link>
           </el-tooltip>
-          <span class="btn-bell-badge" v-if="message"></span>
+          <span class="btn-bell-badge" v-if="message > 0"></span>
         </div>
 
         <!-- 用户头像 -->
@@ -127,8 +127,9 @@ function handleCommand(command) {
 const getMessageStatistics = async () => {
   const { data: result } = await SimpleApi.fetchMessageStatistics();
   if (!checkRequestResult(result, "获取系统消息简要统计信息失败!")) {
-    message.value = result.data.unread;
+    return;
   }
+  message.value = result.data.unread;
 };
 
 // 侧边栏折叠, 通过全局事件总线来进行组件间的通信, 整体的消息传递流程: header -> sidebar -> home
