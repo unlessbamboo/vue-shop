@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 面包屑导航区域 -->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
+    <el-breadcrumb :separator-icon="ArrowRight">
       <el-breadcrumb-item :to="{ path: '/dashboard' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>商品管理</el-breadcrumb-item>
       <el-breadcrumb-item>添加商品</el-breadcrumb-item>
@@ -91,7 +91,7 @@
 
           <el-tab-pane label="商品内容" name="4">
             <div class="goods-editor">
-              <quill-editor v-model="addForm.introduce"></quill-editor>
+              <QuillEditor v-model="addForm.introduce" />
             </div>
             <div class="add-good-button">
               <el-button class="btnAdd" @click="addGoods" type="primary">添加商品</el-button>
@@ -106,233 +106,256 @@
   </div>
 </template>
 
-<script>
+<script setup name="goodsAdd">
 import _ from "lodash";
 import axiosapi from "@/utils/request";
-import requestMixin from "@/mixins/requestMixin";
+import { reactive, ref, onMounted, toRefs, computed, getCurrentInstance, nextTick } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { Delete, Edit, Setting, Search, ArrowRight } from "@element-plus/icons-vue";
+import SimpleApi from "@/api/simpleApi";
+import { ElMessageBox } from "element-plus";
+import { checkRequestResult } from "@/mixins/requestCommon";
 import categoryMixin from "@/mixins/categoryMixin";
 
-export default {
-  mixins: [requestMixin, categoryMixin],
-  data() {
-    return {
-      activeIndex: "0",
-      addForm: {
-        name: "",
-        price: 0,
-        weight: 0,
-        number: 0,
-        // 商品所属的分类数组
-        categories: [],
-        // 图片的数组
-        pics: [],
-        // 商品的详情描述
-        introduce: "",
-        attrs: [],
+// 全局变量
+const { proxy } = getCurrentInstance();
+const router = useRouter();
+
+// 复用composition变量
+const { cateList, casteProps, cascaderProps, getCateSimpleList } = categoryMixin();
+const addFormRef = ref(null);
+
+const state = reactive({
+  activeIndex: "0",
+  addForm: {
+    name: "",
+    price: 0,
+    weight: 0,
+    number: 0,
+    // 商品所属的分类数组
+    categories: [],
+    // 图片的数组
+    pics: [],
+    // 商品的详情描述
+    introduce: "",
+    attrs: [],
+  },
+  addFormRules: {
+    name: [
+      {
+        required: true,
+        message: "请输入商品名称",
+        trigger: "blur",
       },
-      addFormRules: {
-        name: [
-          {
-            required: true,
-            message: "请输入商品名称",
-            trigger: "blur",
-          },
-        ],
-        price: [
-          {
-            required: true,
-            message: "请输入商品价格",
-            trigger: "blur",
-            type: "number",
-            transform: (value) => {
-              const newValue = value !== "" ? Number(value) : 0;
-              if (Number.isFinite(newValue)) {
-                this.addForm.price = newValue;
-              }
-              return newValue;
-            },
-          },
-        ],
-        weight: [
-          {
-            required: true,
-            message: "请输入商品重量",
-            trigger: "blur",
-            type: "number",
-            transform: (value) => {
-              const newValue = value !== "" ? Number(value) : 0;
-              if (Number.isFinite(newValue)) {
-                this.addForm.weight = newValue;
-              }
-              return newValue;
-            },
-          },
-        ],
-        number: [
-          {
-            required: true,
-            message: "请输入商品数量",
-            trigger: "blur",
-            type: "number",
-            transform: (value) => {
-              const newValue = value !== "" ? Number(value) : 0;
-              if (Number.isFinite(newValue)) {
-                this.addForm.number = newValue;
-              }
-              return newValue;
-            },
-          },
-        ],
-        categories: [{ required: true, message: "请选择商品分类", trigger: "blur" }],
+    ],
+    price: [
+      {
+        required: true,
+        message: "请输入商品价格",
+        trigger: "blur",
+        type: "number",
+        transform: (value) => {
+          const newValue = value !== "" ? Number(value) : 0;
+          if (Number.isFinite(newValue)) {
+            addForm.value.price = newValue;
+          }
+          return newValue;
+        },
       },
-      // 动态参数列表数据
-      manyTableData: [],
-      // 静态属性列表数据
-      onlyTableData: [],
-      // 上传图片的URL地址
-      uploadURL: axiosapi.uploadURL + "/api/v1/goods/upload",
-      // 图片上传组件的header请求头对象
-      headerObj: {
-        Authorization: window.sessionStorage.getItem("token"),
+    ],
+    weight: [
+      {
+        required: true,
+        message: "请输入商品重量",
+        trigger: "blur",
+        type: "number",
+        transform: (value) => {
+          const newValue = value !== "" ? Number(value) : 0;
+          if (Number.isFinite(newValue)) {
+            addForm.value.weight = newValue;
+          }
+          return newValue;
+        },
       },
-      previewPath: "",
-      previewVisible: false,
-    };
+    ],
+    number: [
+      {
+        required: true,
+        message: "请输入商品数量",
+        trigger: "blur",
+        type: "number",
+        transform: (value) => {
+          const newValue = value !== "" ? Number(value) : 0;
+          if (Number.isFinite(newValue)) {
+            addForm.value.number = newValue;
+          }
+          return newValue;
+        },
+      },
+    ],
+    categories: [{ required: true, message: "请选择商品分类", trigger: "blur" }],
   },
-  created() {
-    this.getCateSimpleList();
+  // 动态参数列表数据
+  manyTableData: [],
+  // 静态属性列表数据
+  onlyTableData: [],
+  // 上传图片的URL地址
+  uploadURL: axiosapi.uploadURL + "/api/v1/goods/upload",
+  // 图片上传组件的header请求头对象
+  headerObj: {
+    Authorization: window.sessionStorage.getItem("token"),
   },
-  methods: {
-    // 级联选择器选中会触发
-    handleChange() {
-      if (this.addForm.categories.length !== 3) {
-        this.addForm.categories = [];
-      }
-    },
-    beforeTabLeave(activeName, oldActiveName) {
-      if (oldActiveName === "0" && this.addForm.categories.length !== 3) {
-        $eMessage.error("请先选择商品分类！");
-        return false;
-      }
-    },
-    async tabClicked() {
-      if (this.activeIndex === "1") {
-        const { data: result } = await this.$http.get(`goods/categories/${this.cateId}/attributes`, {
-          params: { select: "many" },
-        });
-        if (!checkRequestResult(result, "获取状态参数列表失败！")) {
-          return;
-        }
-        result.data.forEach((item) => {
-          item.values = item.values.length === 0 ? [] : item.values.split(" ");
-        });
-        this.manyTableData = result.data;
-      } else if (this.activeIndex === "2") {
-        const { data: result } = await this.$http.get(`goods/categories/${this.cateId}/attributes`, {
-          params: { select: "only" },
-        });
-        if (!checkRequestResult(result, "获取状态参数列表失败！")) {
-          return;
-        }
-        result.data.forEach((item) => {
-          item.values = item.values.length === 0 ? "" : item.values;
-        });
-        this.onlyTableData = result.data;
-      }
-    },
-    // 处理图片预览效果
-    handlePreview(file) {
-      this.previewPath = file.response.data.url;
-      this.previewVisible = true;
-    },
+  previewPath: "",
+  previewVisible: false,
+});
+const {
+  activeIndex,
+  addForm,
+  addFormRules,
+  manyTableData,
+  onlyTableData,
+  uploadURL,
+  headerObj,
+  previewPath,
+  previewVisible,
+} = toRefs(state);
 
-    /*
-     * 处理移除图片的操作, 其操作:
-     *  a. 获取将要删除的照片路径
-     *  b. 在图片列表中匹配并找到相应的元素并进行删除
-     */
-    handleRemove(file) {
-      const filePath = file.response.data.pics_big;
-      const i = this.addForm.pics.findIndex((x) => x.pics_big === filePath);
-      this.addForm.pics.splice(i, 1);
-    },
+/*
+Lifecycle: 事件方法和生命周期
+*/
+onMounted(() => {
+  getCateSimpleList();
+});
+const cateId = computed(() => {
+  if (addForm.value.categories.length === 3) {
+    return addForm.value.categories[2];
+  }
+  return null;
+});
 
-    /*
-     * 功能: 拼接图片信息对象并将其Push到pics数组中
-     */
-    handleSuccess(response) {
-      this.addForm.pics.push(response.data);
-    },
+/*
+Methods:
+*/
+// 级联选择器选中会触发
+function handleChange() {
+  if (addForm.value.categories.length !== 3) {
+    addForm.value.categories = [];
+  }
+}
+function beforeTabLeave(activeName, oldActiveName) {
+  if (oldActiveName === "0" && addForm.value.categories.length !== 3) {
+    proxy.$eMessage.error("请先选择商品分类！");
+    return false;
+  }
+}
+async function tabClicked() {
+  if (activeIndex.value === "1") {
+    const { data: result } = await proxy.$http.get(`goods/categories/${cateId.value}/attributes`, {
+      params: { select: "many" },
+    });
+    if (!checkRequestResult(result, "获取状态参数列表失败！")) {
+      return;
+    }
+    result.data.forEach((item) => {
+      item.values = item.values.length === 0 ? [] : item.values.split(" ");
+    });
+    manyTableData.value = result.data;
+  } else if (activeIndex.value === "2") {
+    const { data: result } = await proxy.$http.get(`goods/categories/${cateId.value}/attributes`, {
+      params: { select: "only" },
+    });
+    if (!checkRequestResult(result, "获取状态参数列表失败！")) {
+      return;
+    }
+    result.data.forEach((item) => {
+      item.values = item.values.length === 0 ? "" : item.values;
+    });
+    onlyTableData.value = result.data;
+  }
+}
+// 处理图片预览效果
+function handlePreview(file) {
+  previewPath.value = file.response.data.url;
+  previewVisible.value = true;
+}
 
-    /*
-     * 功能: 添加商品
-     */
-    addGoods() {
-      this.$refs.addFormRef.validate(async (valid) => {
-        if (!valid) {
-          return $eMessage.error("填写必要的表单项！");
-        }
-        // 执行添加的业务逻辑
-        const form = _.cloneDeep(this.addForm);
-        // 处理动态参数
-        this.manyTableData.forEach((item) => {
-          const newInfo = {
-            id: item.id,
-            values: item.values.join(" "),
-          };
-          this.addForm.attrs.push(newInfo);
-        });
-        // 处理静态属性
-        this.onlyTableData.forEach((item) => {
-          const newInfo = {
-            id: item.id,
-            values: item.values,
-          };
-          this.addForm.attrs.push(newInfo);
-        });
-        form.attrs = this.addForm.attrs;
-        // 发起请求添加商品
-        // 商品的名称必须是唯一的
-        const { data: result } = await this.$http.post("goods", form);
-        if (!checkRequestResult(result, "添加商品失败")) {
-          return;
-        }
-        $eMessage.success("添加商品成功");
-        this.$router.push("/goods");
-      });
-    },
-    /*
-     * 上/下一页事件处理函数
-     */
-    handleNextOrPrevPage(action) {
-      var isEnable = false;
-      if (action == "prev") {
-        if (this.activeIndex > 0) {
-          this.activeIndex = (parseInt(this.activeIndex) - 1).toString();
-          isEnable = true;
-        }
-      } else {
-        if (this.activeIndex < 4) {
-          this.activeIndex = (parseInt(this.activeIndex) + 1).toString();
-          isEnable = true;
-        }
-      }
+/*
+ * 处理移除图片的操作, 其操作:
+ *  a. 获取将要删除的照片路径
+ *  b. 在图片列表中匹配并找到相应的元素并进行删除
+ */
+function handleRemove(file) {
+  const filePath = file.response.data.pics_big;
+  const i = addForm.value.pics.findIndex((x) => x.pics_big === filePath);
+  addForm.value.pics.splice(i, 1);
+}
 
-      // 表示此时tab也发生了变动
-      if (isEnable) {
-        this.tabClicked();
-      }
-    },
-  },
-  computed: {
-    cateId() {
-      if (this.addForm.categories.length === 3) {
-        return this.addForm.categories[2];
-      }
-      return null;
-    },
-  },
-};
+/*
+ * 功能: 拼接图片信息对象并将其Push到pics数组中
+ */
+function handleSuccess(response) {
+  addForm.value.pics.push(response.data);
+}
+
+/*
+ * 功能: 添加商品
+ */
+function addGoods() {
+  addFormRef.value.validate(async (valid) => {
+    if (!valid) {
+      return proxy.$eMessage.error("填写必要的表单项！");
+    }
+    // 执行添加的业务逻辑
+    const form = _.cloneDeep(addForm.value);
+    // 处理动态参数
+    manyTableData.value.forEach((item) => {
+      const newInfo = {
+        id: item.id,
+        values: item.values.join(" "),
+      };
+      addForm.value.attrs.push(newInfo);
+    });
+    // 处理静态属性
+    onlyTableData.value.forEach((item) => {
+      const newInfo = {
+        id: item.id,
+        values: item.values,
+      };
+      addForm.value.attrs.push(newInfo);
+    });
+    form.attrs = addForm.value.attrs;
+    // 发起请求添加商品
+    // 商品的名称必须是唯一的
+    const { data: result } = await proxy.$http.post("goods", form);
+    if (!checkRequestResult(result, "添加商品失败")) {
+      return;
+    }
+    proxy.$eMessage.success("添加商品成功");
+    router.push("/goods");
+  });
+}
+/*
+ * 上/下一页事件处理函数
+ */
+function handleNextOrPrevPage(action) {
+  var isEnable = false;
+  if (action == "prev") {
+    if (activeIndex.value > 0) {
+      activeIndex.value = (parseInt(activeIndex.value) - 1).toString();
+      isEnable = true;
+    }
+  } else {
+    if (activeIndex.value < 4) {
+      activeIndex.value = (parseInt(activeIndex.value) + 1).toString();
+      isEnable = true;
+    }
+  }
+
+  // 表示此时tab也发生了变动
+  if (isEnable) {
+    tabClicked();
+  }
+}
 </script>
 
 <style scoped>
@@ -357,8 +380,12 @@ export default {
 }
 
 /* 编辑框内容样式调整 */
-.quill-editor:deep(.ql-container) {
+.goods-editor {
+  margin-bottom: 20px;
+}
+.goods-editor:deep(.ql-container) {
   min-height: 380px;
+  max-height: 420px;
 }
 
 /* 添加商品按钮的样式 */
