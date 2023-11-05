@@ -69,10 +69,10 @@
             <el-table-column label="参数值" prop="values"></el-table-column>
             <el-table-column label="操作" width="200px">
               <template v-slot:default="scope">
-                <el-button type="primary" icon="el-icon-edit" size="small" @click="showEditDialog(scope.row.id)">
+                <el-button type="primary" :icon="Edit" size="small" @click="showEditDialog(scope.row.id)">
                   编辑
                 </el-button>
-                <el-button type="danger" icon="el-icon-delete" size="small" @click="removeParams(scope.row.id)">
+                <el-button type="danger" :icon="Delete" size="small" @click="removeParams(scope.row.id)">
                   删除
                 </el-button>
               </template>

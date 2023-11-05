@@ -1,10 +1,9 @@
-import { createApp, createVNode } from "vue";
+import {createApp, createVNode} from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store/vuex";
 import ElementPlus from "element-plus";
-import { createI18n } from "vue-i18n";
-import TreeTable from "vue-table-with-tree-grid";
+import {createI18n} from "vue-i18n";
 import VueQuillEditor from "vue-quill-editor";
 import "quill/dist/quill.core.css";
 import "quill/dist/quill.snow.css";
@@ -14,12 +13,12 @@ import "element-plus/dist/index.css";
 import * as ElementPlusIconsVue from "@element-plus/icons-vue"; // 引入所有图标，并命名为 Icons
 import axiosapi from "@/utils/request";
 import elementMessage from "@/utils/message";
-import { messages } from "@/utils/i18n";
+import {messages} from "@/utils/i18n";
 import emitter from "@/store/bus";
 import "@/assets/css/icon.css";
 import "@/auxiliary";
 
-import { FontAwesomeIcon } from "@/utils/icon";
+import {FontAwesomeIcon} from "@/utils/icon";
 import dialogDrag from "@/plugins/directives";
 
 const app = createApp(App);
@@ -36,11 +35,10 @@ app.config.globalProperties.$mitt = emitter; // 新版本事件总线
 }); */
 // Icon自定组件
 const Icon = (props) => {
-  const { icon } = props;
+  const {icon} = props;
   return createVNode(ElementPlusIconsVue[icon]);
 };
 app.component("Icon", Icon);
-app.component("tree-table", TreeTable);
 app.use(VueQuillEditor);
 app.use(ElementPlus, {
   size: "small",

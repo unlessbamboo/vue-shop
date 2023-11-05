@@ -5,6 +5,7 @@ __pycache__/
 data
 tmp
 examples
+bak
 
 # C extensions
 *.so
