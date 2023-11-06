@@ -239,7 +239,6 @@ import {
   onActivated,
   onDeactivated,
   computed,
-  watch,
 } from "vue";
 import * as echarts from "echarts";
 import { ElMessageBox } from "element-plus";

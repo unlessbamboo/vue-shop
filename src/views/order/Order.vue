@@ -10,7 +10,9 @@
       <el-row>
         <el-col :span="8">
           <el-input placeholder="请输入内容">
-            <el-button slot="append" icon="el-icon-search"></el-button>
+            <template v-slot:append>
+              <el-button :icon="Search"></el-button>
+            </template>
           </el-input>
         </el-col>
       </el-row>
@@ -20,21 +22,21 @@
         <el-table-column label="订单编号" prop="id"></el-table-column>
         <el-table-column label="订单价格" prop="price"></el-table-column>
         <el-table-column label="是否付款" prop="pay_status">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             <el-tag type="success" v-if="scope.pay_status === '1'">已付款</el-tag>
             <el-tag type="danger" v-else>未付款</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="是否发货" prop="is_send"></el-table-column>
         <el-table-column label="下单时间" prop="create_at">
-          <template slot-scope="scope">
+          <template v-slot:default="scope">
             {{ $filters.dateFormat(scope.row.create_at) }}
           </template>
         </el-table-column>
         <el-table-column label="操作">
           <template>
-            <el-button icon="el-icon-edit" size="small" type="primary" @click="showBox"></el-button>
-            <el-button icon="el-icon-location" size="small" type="success" @click="showProgressBox"></el-button>
+            <el-button :icon="Edit" size="small" type="primary" @click="showBox"></el-button>
+            <el-button icon="Location" size="small" type="success" @click="showProgressBox"></el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -62,10 +64,12 @@
         </el-form-item>
       </el-form>
       <!-- 底部区域 -->
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="addressVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addressVisible = false">确 定</el-button>
-      </span>
+      <template v-slot:footer>
+        <span class="dialog-footer">
+          <el-button @click="addressVisible = false">取 消</el-button>
+          <el-button type="primary" @click="addressVisible = false">确 定</el-button>
+        </span>
+      </template>
     </el-dialog>
 
     <!-- 展示物流进度的对话框 -->
@@ -80,74 +84,86 @@
   </div>
 </template>
 
-<script>
+<script setup name="order">
+import { reactive, ref, onMounted, toRefs, computed, getCurrentInstance, nextTick } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { Delete, Edit, Setting, Search, ArrowRight, Location } from "@element-plus/icons-vue";
+import { ElMessageBox } from "element-plus";
+import { checkRequestResult } from "@/mixins/requestCommon";
+import categoryMixin from "@/mixins/categoryMixin";
 import provinceInfo from "@/data/province";
 import SimpleApi from "@/api/simpleApi";
-import requestMixin from "@/mixins/requestMixin";
 import db from "./db.js";
 
-export default {
-  mixins: [requestMixin],
-  data() {
-    return {
-      queryInfo: {
-        query: "",
-        page: 1,
-        pagesize: 10,
-      },
-      total: 0,
-      orderList: [],
-      addressVisible: false,
-      addressForm: {
-        address1: [],
-        address2: "",
-      },
-      addressFormRules: {
-        address1: [{ required: true, message: "请选择省市区县", trigger: "blur" }],
-        address2: [{ required: true, message: "请输入详细地址", trigger: "blur" }],
-      },
-      provinceInfo,
-      progressVisible: false,
-      progressInfo: [],
-      db,
-    };
-  },
-  created() {
-    this.getOrderList();
-  },
-  methods: {
-    async getOrderList() {
-      const { data: result } = await this.$http.get("order", {
-        params: this.queryInfo,
-      });
-      if (!checkRequestResult(result, "获取订单列表失败")) {
-        return;
-      }
-      this.total = result.pager.total;
-      this.orderList = result.data;
-    },
-    handleSizeChange(newSize) {
-      this.queryInfo.pagesize = newSize;
-      this.getOrderList();
-    },
-    handleCurrentChange(newPage) {
-      this.queryInfo.page = newPage;
-      this.getOrderList();
-    },
-    // 展示修改地址的对话框
-    showBox() {
-      this.addressVisible = true;
-    },
-    addressDialogClosed() {
-      this.$refs.addressFormRef.resetFields();
-    },
-    showProgressBox() {
-      this.progressInfo = this.db;
-      this.progressVisible = true;
-      console.log(this.progressInfo);
-    },
-  },
-};
+// 全局变量
+const { proxy } = getCurrentInstance();
+const router = useRouter();
+
+// 复用composition变量
+const { cateList, casteProps, cascaderProps, getCateSimpleList } = categoryMixin();
+const addressFormRef = ref(null);
+
+/*
+全局变量
+*/
+const queryInfo = ref({
+  query: "",
+  page: 1,
+  pagesize: 10,
+});
+const total = ref(0);
+const orderList = ref([]);
+const addressVisible = ref(false);
+const addressForm = ref({
+  address1: [],
+  address2: "",
+});
+const addressFormRules = ref({
+  address1: [{ required: true, message: "请选择省市区县", trigger: "blur" }],
+  address2: [{ required: true, message: "请输入详细地址", trigger: "blur" }],
+});
+const progressVisible = ref(false);
+const progressInfo = ref([]);
+
+/*
+声明周期和computed
+*/
+onMounted(() => {
+  getOrderList();
+});
+
+/*
+method
+*/
+async function getOrderList() {
+  const { data: result } = await proxy.$http.get("order", {
+    params: queryInfo.value,
+  });
+  if (!checkRequestResult(result, "获取订单列表失败")) {
+    return;
+  }
+  total.value = result.pager.total;
+  orderList.value = result.data;
+}
+function handleSizeChange(newSize) {
+  queryInfo.value.pagesize = newSize;
+  getOrderList();
+}
+function handleCurrentChange(newPage) {
+  queryInfo.value.page = newPage;
+  getOrderList();
+}
+// 展示修改地址的对话框
+function showBox() {
+  addressVisible.value = true;
+}
+function addressDialogClosed() {
+  addressFormRef.value.resetFields();
+}
+function showProgressBox() {
+  progressInfo.value = db;
+  progressVisible.value = true;
+}
 </script>
 
 <style scoped>

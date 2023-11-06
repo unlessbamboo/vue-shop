@@ -6,7 +6,7 @@
       -->
       <el-breadcrumb separator="/">
         <el-breadcrumb-item>
-          <i class="el-icon-rank"></i>
+          <Icon icon="Grid" class="shopIcon" />
           拖拽组件
         </el-breadcrumb-item>
         <el-breadcrumb-item>拖拽排序</el-breadcrumb-item>
@@ -16,13 +16,13 @@
     <div class="container">
       <div class="plugins-tips">
         Vue.Draggable：基于 Sortable.js 的 Vue 拖拽组件。 访问地址：
-        <a href="https://github.com/SortableJS/Vue.Draggable" target="_blank">Vue.Draggable</a>
+        <a href="https://github.com/SortableJS/vue.draggable.next" target="_blank">Vue.Draggable</a>
       </div>
 
       <div class="drag-box">
         <!-- 注意, template不存在, 不能设置key -->
-        <template v-for="(index, dragname) in dragCategories">
-          <div class="drag-box-item" :key="index">
+        <template v-for="(index, dragname) in dragCategories" :key="index">
+          <div class="drag-box-item">
             <div class="item-title">{{ dragname }}</div>
             <!-- 
               todo: 通过 v-model 指令将 todo 数据与组件进行双向绑定，使得拖拽排序后的结果反映在数据上
@@ -32,13 +32,18 @@
                     组件会被渲染为 <div> 标签
                 + 元素会应用 id="todo" 和 class="item-ul" 的属性和样式
               @remove: 表示单元被移动到另一个列表时的回调函数
-          -->
-            <draggable v-model="draginfo[dragname]" @remove="removeHandle" :options="dragOptions">
-              <transition-group tag="div" :id="dragname" class="item-ul">
-                <div v-for="item in draginfo[dragname]" class="drag-list" :key="item.id">
-                  {{ item.content }}
+            -->
+            <draggable
+              v-model="draginfo[dragname]"
+              group="people"
+              @change="addHandle($event, dragname)"
+              class="item-ul"
+              item-key="id">
+              <template #item="{ element }">
+                <div class="drag-list">
+                  {{ element.content }}
                 </div>
-              </transition-group>
+              </template>
             </draggable>
           </div>
         </template>
@@ -47,105 +52,116 @@
   </section>
 </template>
 
-<script>
+<script setup name="draglist">
+import { reactive, ref, onMounted, toRefs, computed, getCurrentInstance, nextTick, watch } from "vue";
+import { Delete, Edit, Setting, Search, ArrowRight } from "@element-plus/icons-vue";
+import SimpleApi from "@/api/simpleApi";
+import { ElMessageBox } from "element-plus";
+import { checkRequestResult } from "@/mixins/requestCommon";
+import categoryMixin from "@/mixins/categoryMixin";
 import draggable from "vuedraggable";
 
-export default {
-  name: "draglist",
-  data() {
-    return {
-      dragOptions: {
-        animation: 120,
-        scroll: true,
-        group: "sortlist",
-        ghostClass: "ghost-style",
-      },
-      dragCategories: { todo: "todo", doing: "doing", done: "done" },
-      draginfo: {
-        todo: [
-          {
-            id: 1,
-            content: "开发图表组件",
-            dragType: "todo",
-          },
-          {
-            id: 2,
-            content: "开发拖拽组件",
-            dragType: "todo",
-          },
-          {
-            id: 3,
-            content: "开发权限测试组件",
-            dragType: "todo",
-          },
-        ],
-        doing: [
-          {
-            id: 4,
-            content: "开发登录注册页面",
-            dragType: "doing",
-          },
-          {
-            id: 5,
-            content: "开发头部组件",
-            dragType: "doing",
-          },
-          {
-            id: 6,
-            content: "开发表格相关组件",
-            dragType: "doing",
-          },
-          {
-            id: 7,
-            content: "开发表单相关组件",
-            dragType: "doing",
-          },
-        ],
-        done: [
-          {
-            id: 8,
-            content: "初始化项目，生成工程目录，完成相关配置",
-            dragType: "done",
-          },
-          {
-            id: 9,
-            content: "开发项目整体框架",
-            dragType: "done",
-          },
-        ],
-      },
-    };
-  },
-  components: {
-    draggable,
-  },
-  methods: {
-    /*
-      event包含: {to, from, item, clone, oldIndex, newIndex}
-    */
-    removeHandle(event) {
-      // 将新的数据类型更改
-      var [newToId, newIndex] = [event.to.id, event.newIndex];
-      var item = this.draginfo[newToId][newIndex];
-      item.dragType = this.getTypeByCategory(newToId);
-      $eMessage.success(`ID()从 ${event.from.id} 移动到 ${event.to.id} `);
+// 全局变量
+const { proxy } = getCurrentInstance();
+
+const dragOptions = ref({
+  animation: 120,
+  scroll: true,
+  group: "sortlist",
+  ghostClass: "ghost-style",
+});
+const dragCategories = ref({ todo: "todo", doing: "doing", done: "done" });
+const draginfo = ref({
+  todo: [
+    {
+      id: 1,
+      content: "开发图表组件",
+      dragType: "todo",
     },
-    /*
-    根据category获取类型
-    */
-    getTypeByCategory(category) {
-      return this.dragCategories.category ? this.dragCategories.category : "todo";
+    {
+      id: 2,
+      content: "开发拖拽组件",
+      dragType: "todo",
     },
-  },
-  watch: {
-    draginfo: {
-      handler(newValue, oldValue) {
-        console.log("新的draginfo值:", newValue);
-      },
-      deep: true,
+    {
+      id: 3,
+      content: "开发权限测试组件",
+      dragType: "todo",
     },
+  ],
+  doing: [
+    {
+      id: 4,
+      content: "开发登录注册页面",
+      dragType: "doing",
+    },
+    {
+      id: 5,
+      content: "开发头部组件",
+      dragType: "doing",
+    },
+    {
+      id: 6,
+      content: "开发表格相关组件",
+      dragType: "doing",
+    },
+    {
+      id: 7,
+      content: "开发表单相关组件",
+      dragType: "doing",
+    },
+  ],
+  done: [
+    {
+      id: 8,
+      content: "初始化项目，生成工程目录，完成相关配置",
+      dragType: "done",
+    },
+    {
+      id: 9,
+      content: "开发项目整体框架",
+      dragType: "done",
+    },
+  ],
+});
+
+/*
+生命周期和watch
+*/
+watch(
+  draginfo,
+  (newValue, oldValue) => {
+    console.log("新的draginfo值:", newValue);
   },
-};
+  {
+    deep: true,
+  },
+);
+
+/*
+methods
+*/
+// event包含: {to, from, item, clone, oldIndex, newIndex}
+function addHandle(event, dragname) {
+  if (!event.added) {
+    return;
+  }
+  // 将新的数据类型更改
+  var item = event.added.element;
+  item.dragType = dragname;
+  proxy.$eMessage.success(`元素<${item.content}>移动到 ${dragname} `);
+}
+// 根据category获取类型
+function getTypeByCategory(category) {
+  return dragCategories.value.category ? dragCategories.value.category : "todo";
+}
+// draggable对应的component data方法
+function getComponentData() {
+  return {
+    tag: "div",
+    id: "dragname",
+  };
+}
 </script>
 
 <style scoped>

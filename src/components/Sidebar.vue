@@ -114,8 +114,6 @@ const items = ref([
     subs: [
       { index: "/form", title: "基本表单" },
       { index: "/editor", title: "富文本编辑器" },
-      { index: "/markdown", title: "markdown编辑器" },
-      { index: "/upload", title: "文件上传" },
     ],
   },
   { icon: "Rank", index: "task", title: "工作流程" },

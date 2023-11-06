@@ -20,8 +20,6 @@ const Icon = () => import("@/views/other/Icon.vue");
 const BaseForm = () => import("@/views/other/BaseForm.vue");
 const Goods = () => import("@/views/goods/GoodsLayout.vue");
 const VueEditor = () => import("@/views/other/VueEditor.vue");
-const MarkDown = () => import("@/views/other/Markdown.vue");
-const Upload = () => import("@/views/other/Upload.vue");
 const Task = () => import("@/views/other/TaskList.vue");
 const I18n = () => import("@/views/other/I18n.vue");
 const Permission = () => import("@/views/Permission.vue");
@@ -86,8 +84,6 @@ const routes = [
       { path: "form", component: BaseForm, meta: { title: "基本表单" } },
       { path: "goods", component: Goods, meta: { title: "商品列表" } },
       { path: "editor", component: VueEditor, meta: { title: "富文本编辑器" } },
-      { path: "markdown", component: MarkDown, meta: { title: "arkdown编辑器" } },
-      { path: "upload", component: Upload, meta: { title: "文件上传" } },
       { path: "task", component: Task, meta: { title: "工作流程" } },
       { path: "systeminfo", component: SystemInfo, meta: { title: "系统监控" } },
       { path: "icon", component: Icon, meta: { title: "自定义图标" } },

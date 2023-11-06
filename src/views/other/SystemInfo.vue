@@ -4,7 +4,7 @@
     <div class="crumbs">
       <el-breadcrumb separator="/">
         <el-breadcrumb-item>
-          <i class="el-icon-lx-cascades"></i>
+          <Icon icon="Grid" class="shopIcon" />
           系统监控信息
         </el-breadcrumb-item>
       </el-breadcrumb>
@@ -130,44 +130,46 @@
   </div>
 </template>
 
-<script>
+<script setup name="State">
+import { reactive, ref, onMounted, onUnmounted, toRefs, computed, getCurrentInstance, nextTick } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { Delete, Edit, Setting, Search, ArrowRight } from "@element-plus/icons-vue";
 import SimpleApi from "@/api/simpleApi";
-import requestMixin from "@/mixins/requestMixin";
+import { ElMessageBox } from "element-plus";
+import { checkRequestResult } from "@/mixins/requestCommon";
+import categoryMixin from "@/mixins/categoryMixin";
 
-export default {
-  name: "State",
-  mixins: [requestMixin],
-  data() {
-    return {
-      timer: null,
-      state: {},
-      colors: [
-        { color: "#5cb87a", percentage: 20 },
-        { color: "#e6a23c", percentage: 40 },
-        { color: "#f56c6c", percentage: 80 },
-      ],
-    };
-  },
-  methods: {
-    async reload() {
-      const { data: result } = await SimpleApi.fetchSystemInfo();
-      if (!checkRequestResult(result, "获取系统基本监控信息异常")) {
-        return;
-      }
-      this.state = result.data;
-    },
-  },
-  created() {
-    this.reload();
-    this.timer = setInterval(() => {
-      this.reload();
-    }, 1000 * 10);
-  },
-  destroyed() {
-    clearInterval(this.timer);
-    this.timer = null;
-  },
-};
+// 全局变量
+const { proxy } = getCurrentInstance();
+const router = useRouter();
+const timer = ref(null);
+const state = ref({});
+const colors = ref([
+  { color: "#5cb87a", percentage: 20 },
+  { color: "#e6a23c", percentage: 40 },
+  { color: "#f56c6c", percentage: 80 },
+]);
+
+/*
+methods
+*/
+async function reload() {
+  const { data: result } = await SimpleApi.fetchSystemInfo();
+  if (!checkRequestResult(result, "获取系统基本监控信息异常")) {
+    return;
+  }
+  state.value = result.data;
+}
+onMounted(() => {
+  reload();
+  timer.value = setInterval(() => {
+    reload();
+  }, 1000 * 10);
+});
+onUnmounted(() => {
+  clearInterval(timer.value);
+  timer.value = null;
+});
 </script>
 
 <style scoped>
