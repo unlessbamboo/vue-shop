@@ -9,11 +9,18 @@ import vueSetupExtend from "vite-plugin-vue-setup-extend"; // 引入插件
 export default defineConfig({
   plugins: [babel(), vue(), vueSetupExtend()],
   base: "./", // 部署应用包时的基本 URL
+  logLevel: "info", // 控制台输出级别
   build: {
+    // minify: false, // 禁用代码混淆(一般不开启)
     outDir: "build/dist", // build构建输出目录, 默认dist
-    assetsDir: "static", // 放置生成的静态资源的目录
-    rollupOptions: {
-      input: "src/main.js", // 入口
+    assetsDir: "static", // 指定生成静态资源的存放路径, 相对于build.outDir
+    chunkSizeWarningLimit: 2000, // 将限制提高到 2000 KB
+    // 自定义底层的 Rollup 打包配置
+    rollupOptions: {},
+  },
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)), // src目录别名
     },
   },
   server: {
@@ -21,10 +28,5 @@ export default defineConfig({
     host: "127.0.0.1",
     https: false,
     open: false,
-  },
-  resolve: {
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)), // src目录别名
-    },
   },
 });
